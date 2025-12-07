@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>赛车圈速排行榜</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #000000 0%, #1a0000 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            margin: 0 auto;
+            transition: max-width 0.3s ease;
+        }
+
+        .container.custom-width {
+            max-width: var(--custom-width, 1200px);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: var(--theme-bg, rgba(20, 0, 0, 0.8));
+            border-radius: 10px;
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+            flex-shrink: 0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--theme-primary, #ff0000), var(--theme-secondary, #cc0000));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px var(--theme-glow, rgba(255, 0, 0, 0.5));
+        }
+        
+        .subtitle {
+            color: #aaa;
+            font-size: 1.1rem;
+        }
+
+        .track-selector {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .track-selector label {
+            color: #ddd;
+            font-weight: bold;
+        }
+
+        .track-select {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            min-width: 200px;
+        }
+
+        .track-select:focus {
+            outline: none;
+            border-color: var(--theme-primary, #ff0000);
+            box-shadow: 0 0 10px var(--theme-glow, rgba(255, 0, 0, 0.3));
+        }
+
+        .width-settings {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--theme-border-light, rgba(255, 0, 0, 0.2));
+        }
+
+        .width-settings label {
+            color: #ddd;
+            font-size: 0.9rem;
+        }
+
+        .width-mode {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .width-mode input[type="radio"] {
+            width: auto;
+            cursor: pointer;
+        }
+
+        .width-input-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .width-input-group input[type="number"] {
+            width: 100px;
+            padding: 5px 10px;
+        }
+
+        .width-input-group span {
+            color: #aaa;
+        }
+        
+        .leaderboard {
+            background: var(--theme-bg, rgba(10, 0, 0, 0.9));
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px var(--theme-glow, rgba(255, 0, 0, 0.2));
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+            margin-bottom: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .leaderboard-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            padding: 15px 20px;
+            background: var(--theme-header-bg, rgba(255, 0, 0, 0.2));
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: var(--theme-primary, #ff0000);
+            flex-shrink: 0;
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+        }
+
+        .leaderboard-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .leaderboard-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            border: 1px solid var(--theme-border-light, rgba(255, 0, 0, 0.1));
+        }
+
+        .leaderboard-item:hover {
+            background: var(--theme-hover-bg, rgba(255, 0, 0, 0.1));
+            transform: translateY(-2px);
+            border-color: var(--theme-border, rgba(255, 0, 0, 0.3));
+            box-shadow: 0 5px 15px var(--theme-glow, rgba(255, 0, 0, 0.2));
+        }
+        
+        .rank-1 {
+            border-left-color: var(--theme-primary, #ff0000);
+            background: var(--theme-rank1-bg, rgba(255, 0, 0, 0.2));
+            box-shadow: 0 0 20px var(--theme-glow, rgba(255, 0, 0, 0.3));
+        }
+
+        .rank-2 {
+            border-left-color: var(--theme-rank2-color, #cc0000);
+            background: var(--theme-rank2-bg, rgba(204, 0, 0, 0.15));
+        }
+
+        .rank-3 {
+            border-left-color: var(--theme-rank3-color, #990000);
+            background: var(--theme-rank3-bg, rgba(153, 0, 0, 0.1));
+        }
+        
+        .rank {
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .driver-name {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        
+        .lap-time {
+            display: flex;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #07ff0e;
+        }
+        
+        .car-model {
+            display: flex;
+            align-items: center;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .btn-edit, .btn-delete {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-edit {
+            background: var(--theme-btn-bg, rgba(255, 0, 0, 0.2));
+            color: var(--theme-btn-color, #ff6666);
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+        }
+
+        .btn-edit:hover {
+            background: var(--theme-btn-hover, rgba(255, 0, 0, 0.4));
+            box-shadow: 0 0 10px var(--theme-glow, rgba(255, 0, 0, 0.3));
+        }
+
+        .btn-delete {
+            background: var(--theme-rank3-bg, rgba(139, 0, 0, 0.3));
+            color: var(--theme-primary, #ff0000);
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+        }
+
+        .btn-delete:hover {
+            background: var(--theme-btn-bg, rgba(139, 0, 0, 0.5));
+            box-shadow: 0 0 10px var(--theme-glow, rgba(255, 0, 0, 0.3));
+        }
+        
+        /* 管理区域样式 */
+        .management-toggle {
+            text-align: center;
+            margin: 10px 0;
+            flex-shrink: 0;
+        }
+        
+        .toggle-btn {
+            padding: 10px 20px;
+            background: var(--theme-btn-bg, rgba(255, 0, 0, 0.2));
+            color: white;
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .toggle-btn:hover {
+            background: var(--theme-btn-hover, rgba(255, 0, 0, 0.4));
+            box-shadow: 0 0 15px var(--theme-glow, rgba(255, 0, 0, 0.3));
+        }
+        
+        .management-panel {
+            background: var(--theme-bg, rgba(10, 0, 0, 0.9));
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px var(--theme-glow, rgba(255, 0, 0, 0.2));
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+            margin-bottom: 10px;
+            display: none;
+            max-height: 50vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .management-panel.active {
+            display: block;
+        }
+
+        .panel-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--theme-border-light, rgba(255, 0, 0, 0.2));
+        }
+
+        .panel-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+        .panel-tab.active {
+            color: var(--theme-primary, #ff0000);
+            border-bottom-color: var(--theme-primary, #ff0000);
+            text-shadow: 0 0 10px var(--theme-glow, rgba(255, 0, 0, 0.5));
+        }
+        
+        .panel-content {
+            display: none;
+        }
+        
+        .panel-content.active {
+            display: block;
+        }
+        
+        .edit-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--theme-hover-bg, rgba(0, 0, 0, 0.2));
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .edit-form {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ddd;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 1rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--theme-primary, #ff0000);
+            box-shadow: 0 0 10px var(--theme-glow, rgba(255, 0, 0, 0.3));
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-add {
+            background: linear-gradient(90deg, var(--theme-primary, #ff0000), var(--theme-secondary, #cc0000));
+            color: white;
+            border: 1px solid var(--theme-glow, rgba(255, 0, 0, 0.5));
+        }
+
+        .btn-add:hover {
+            background: linear-gradient(90deg, var(--theme-secondary, #cc0000), var(--theme-rank3-color, #990000));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px var(--theme-glow, rgba(255, 0, 0, 0.4));
+        }
+
+        .btn-reset {
+            background: var(--theme-hover-bg, rgba(0, 0, 0, 0.5));
+            color: white;
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+        }
+
+        .btn-reset:hover {
+            background: var(--theme-btn-bg, rgba(255, 0, 0, 0.2));
+            border-color: var(--theme-glow, rgba(255, 0, 0, 0.5));
+        }
+        
+        .car-list {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: var(--theme-hover-bg, rgba(0, 0, 0, 0.5));
+            border-radius: 5px;
+            padding: 10px;
+            border: 1px solid var(--theme-border-light, rgba(255, 0, 0, 0.2));
+        }
+
+        .car-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            background: var(--theme-hover-bg, rgba(0, 0, 0, 0.4));
+            border-radius: 4px;
+            border: 1px solid var(--theme-border-light, rgba(255, 0, 0, 0.2));
+            transition: all 0.3s ease;
+        }
+
+        .car-item:hover {
+            background: var(--theme-hover-bg, rgba(255, 0, 0, 0.1));
+            border-color: var(--theme-border, rgba(255, 0, 0, 0.3));
+        }
+        
+        .car-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-small {
+            padding: 3px 8px;
+            font-size: 0.7rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+            color: #444;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            padding: 10px 0;
+        }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--theme-hover-bg, rgba(0, 0, 0, 0.5));
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--theme-scrollbar, rgba(255, 0, 0, 0.5));
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--theme-scrollbar-hover, rgba(255, 0, 0, 0.8));
+        }
+        .logo{
+            width: 100%;
+            display: block;
+            text-align: center;
+        }
+
+        .logo-text {
+            font-size: 3rem;
+            margin: 0;
+            background: linear-gradient(90deg, var(--theme-primary, #ff0000), var(--theme-secondary, #cc0000));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            text-shadow: 0 0 30px var(--theme-glow, rgba(255, 0, 0, 0.5));
+            font-weight: 900;
+        }
+
+        .logoimg{
+            width: 30%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* 主题选择器样式 */
+        .theme-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .theme-option {
+            cursor: pointer;
+            padding: 15px;
+            border: 2px solid var(--theme-border-light, rgba(255, 255, 255, 0.2));
+            border-radius: 8px;
+            background: var(--theme-hover-bg, rgba(0, 0, 0, 0.3));
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .theme-option:hover {
+            border-color: var(--theme-border, rgba(255, 255, 255, 0.5));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--theme-hover-bg, rgba(0, 0, 0, 0.3));
+        }
+
+        .theme-option.active {
+            border-color: var(--theme-primary, #ff0000);
+            box-shadow: 0 0 20px var(--theme-primary, rgba(255, 0, 0, 0.5));
+        }
+
+        .theme-preview {
+            width: 100%;
+            height: 60px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .theme-option span {
+            display: block;
+            color: #ddd;
+            font-size: 0.9rem;
+        }
+
+        .custom-color-group {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .custom-color-group .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .custom-color-group input[type="color"] {
+            width: 100%;
+            height: 50px;
+            border: 1px solid var(--theme-border, rgba(255, 255, 255, 0.3));
+            border-radius: 5px;
+            background: var(--theme-hover-bg, rgba(0, 0, 0, 0.3));
+            cursor: pointer;
+        }
+
+        /* 动态主题变量 */
+        :root {
+            --theme-primary: #ff0000;
+            --theme-secondary: #cc0000;
+            --theme-bg: #1a0000;
+            --theme-border: rgba(255, 0, 0, 0.3);
+            --theme-border-light: rgba(255, 0, 0, 0.1);
+            --theme-glow: rgba(255, 0, 0, 0.5);
+            --theme-scrollbar: rgba(255, 0, 0, 0.5);
+            --theme-scrollbar-hover: rgba(255, 0, 0, 0.8);
+            --theme-header-bg: rgba(255, 0, 0, 0.2);
+            --theme-hover-bg: rgba(255, 0, 0, 0.1);
+            --theme-rank1-bg: rgba(255, 0, 0, 0.2);
+            --theme-rank2-color: #cc0000;
+            --theme-rank2-bg: rgba(204, 0, 0, 0.15);
+            --theme-rank3-color: #990000;
+            --theme-rank3-bg: rgba(153, 0, 0, 0.1);
+            --theme-btn-bg: rgba(255, 0, 0, 0.2);
+            --theme-btn-hover: rgba(255, 0, 0, 0.4);
+            --theme-btn-color: #ff6666;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, var(--theme-bg, #1a0000) 100%);
+        }
+
+        h1 {
+            background: linear-gradient(90deg, var(--theme-primary, #ff0000), var(--theme-secondary, #cc0000));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px var(--theme-glow, rgba(255, 0, 0, 0.5));
+        }
+
+        .track-select {
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+        }
+
+        .track-select:focus {
+            border-color: var(--theme-primary, #ff0000);
+            box-shadow: 0 0 10px var(--theme-glow, rgba(255, 0, 0, 0.3));
+        }
+
+        header {
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--theme-scrollbar, rgba(255, 0, 0, 0.5));
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--theme-scrollbar-hover, rgba(255, 0, 0, 0.8));
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1 class="logo-text">JAKE RACING</h1>
+                <img src="" alt="Logo" class="logoimg" style="display: none;">
+            </div>
+            <!-- 赛道选择器 -->
+            <div class="track-selector">
+                <label for="trackSelect">当前赛道:</label>
+                <select id="trackSelect" class="track-select">
+                    <!-- 赛道选项将通过JavaScript动态生成 -->
+                </select>
+            </div>
+        </header>
+        
+        <!-- 主排行榜 -->
+        <div class="leaderboard">
+            <div class="leaderboard-header">
+                <div>排名</div>
+                <div>车手姓名</div>
+                <div>圈速</div>
+                <div>赛车型号</div>
+            </div>
+            <div class="leaderboard-list" id="leaderboardList">
+                <!-- 排行榜内容将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 管理区域 -->
+        <div class="management-toggle">
+            <button class="toggle-btn" id="toggleManagement">管理数据</button>
+        </div>
+        
+        <div class="management-panel" id="managementPanel">
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-tab="edit">编辑数据</button>
+                <button class="panel-tab" data-tab="tracks">赛道管理</button>
+                <button class="panel-tab" data-tab="cars">车型管理</button>
+                <button class="panel-tab" data-tab="appearance">外观设置</button>
+            </div>
+            
+            <!-- 编辑数据面板 -->
+            <div class="panel-content active" id="editPanel">
+                <h2>添加新记录</h2>
+                <div class="edit-form">
+                    <div class="form-group">
+                        <label for="driverName">车手姓名</label>
+                        <input type="text" id="driverName" placeholder="输入车手姓名">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>圈速</label>
+                        <div class="time-inputs">
+                            <div>
+                                <label for="minutes">分钟</label>
+                                <input type="number" id="minutes" min="0" max="59" placeholder="分" value="1">
+                            </div>
+                            <div>
+                                <label for="seconds">秒钟</label>
+                                <input type="number" id="seconds" min="0" max="59" placeholder="秒" value="33">
+                            </div>
+                            <div>
+                                <label for="milliseconds">毫秒</label>
+                                <input type="number" id="milliseconds" min="0" max="999" placeholder="毫秒" value="999">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="recordTrack">赛道</label>
+                        <select id="recordTrack">
+                            <!-- 赛道选项将通过JavaScript动态生成 -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="carModel">赛车型号</label>
+                        <select id="carModel">
+                            <!-- 车型选项将通过JavaScript动态生成 -->
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn-add" id="addRecord">添加记录</button>
+                        <button class="btn-reset" id="resetForm">重置表单</button>
+                    </div>
+                </div>
+
+                <h2>现有记录</h2>
+
+                <!-- 筛选器 -->
+                <div class="filter-group" style="margin-bottom: 20px; padding: 15px; background: var(--theme-hover-bg, rgba(0, 0, 0, 0.3)); border-radius: 8px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="filterTrack">筛选赛道</label>
+                            <select id="filterTrack">
+                                <option value="">全部赛道</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="filterCar">筛选车型</label>
+                            <select id="filterCar">
+                                <option value="">全部车型</option>
+                            </select>
+                        </div>
+                        <button class="btn-reset" id="clearFilters" style="height: 40px;">清除筛选</button>
+                    </div>
+                </div>
+
+                <div class="edit-list" id="editList">
+                    <!-- 编辑列表将通过JavaScript动态生成 -->
+                </div>
+            </div>
+            
+            <!-- 赛道管理面板 -->
+            <div class="panel-content" id="tracksPanel">
+                <h2>赛道管理</h2>
+                <div class="form-group">
+                    <label for="newTrackName">添加新赛道</label>
+                    <input type="text" id="newTrackName" placeholder="输入赛道名称，如：上海国际赛车场">
+                </div>
+                <button class="btn-add" id="addTrack">添加赛道</button>
+
+                <div class="car-management">
+                    <h3>现有赛道</h3>
+                    <div class="car-list" id="trackList">
+                        <!-- 赛道列表将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 车型管理面板 -->
+            <div class="panel-content" id="carsPanel">
+                <h2>车型管理</h2>
+                <div class="form-group">
+                    <label for="newCarModel">添加新车型</label>
+                    <input type="text" id="newCarModel" placeholder="输入新车型名称">
+                </div>
+                <button class="btn-add" id="addCarModel">添加车型</button>
+
+                <div class="car-management">
+                    <h3>现有车型</h3>
+                    <div class="car-list" id="carList">
+                        <!-- 车型列表将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 外观设置面板 -->
+            <div class="panel-content" id="appearancePanel">
+                <h2>外观设置</h2>
+
+                <!-- Logo设置 -->
+                <div class="form-group">
+                    <label for="logoUrl">Logo图片地址</label>
+                    <input type="text" id="logoUrl" placeholder="输入Logo图片URL地址">
+                    <small style="color: #999; display: block; margin-top: 5px;">支持http://、https://或本地文件路径。留空显示"JAKE RACING"文字</small>
+                </div>
+                <div class="button-group">
+                    <button class="btn-add" id="updateLogo">更新Logo</button>
+                    <button class="btn-reset" id="clearLogo">清除Logo</button>
+                </div>
+
+                <!-- 颜色主题设置 -->
+                <h3 style="margin-top: 30px; margin-bottom: 15px;">颜色主题</h3>
+                <div class="theme-selector">
+                    <div class="theme-option" data-theme="red">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #ff0000, #cc0000);"></div>
+                        <span>经典红色（默认）</span>
+                    </div>
+                    <div class="theme-option" data-theme="blue">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #0066ff, #0044cc);"></div>
+                        <span>科技蓝色</span>
+                    </div>
+                    <div class="theme-option" data-theme="green">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #00cc44, #009933);"></div>
+                        <span>竞速绿色</span>
+                    </div>
+                    <div class="theme-option" data-theme="purple">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #9933ff, #6600cc);"></div>
+                        <span>神秘紫色</span>
+                    </div>
+                    <div class="theme-option" data-theme="orange">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #ff9900, #cc6600);"></div>
+                        <span>活力橙色</span>
+                    </div>
+                </div>
+
+                <!-- 自定义颜色 -->
+                <h3 style="margin-top: 30px; margin-bottom: 15px;">自定义颜色</h3>
+                <div class="custom-color-group">
+                    <div class="form-group">
+                        <label for="primaryColor">主色调</label>
+                        <input type="color" id="primaryColor" value="#ff0000">
+                    </div>
+                    <div class="form-group">
+                        <label for="secondaryColor">次色调</label>
+                        <input type="color" id="secondaryColor" value="#cc0000">
+                    </div>
+                    <button class="btn-add" id="applyCustomColor">应用自定义颜色</button>
+                </div>
+
+                <button class="btn-reset" id="resetTheme" style="margin-top: 20px;">恢复默认主题</button>
+
+                <!-- 管理员密码设置 -->
+                <h3 style="margin-top: 30px; margin-bottom: 15px;">管理员密码</h3>
+                <div style="padding: 10px; background: var(--theme-hover-bg, rgba(0, 0, 0, 0.3)); border-radius: 5px; margin-bottom: 15px;">
+                    <small style="color: #999;">当前状态: <span id="passwordStatus" style="color: var(--theme-primary, #ff0000); font-weight: bold;">未设置</span></small>
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword">设置管理员密码</label>
+                    <input type="password" id="adminPassword" placeholder="输入密码（留空则无密码保护）">
+                    <small style="color: #999; display: block; margin-top: 5px;">设置后，打开"管理数据"面板需要输入密码</small>
+                </div>
+                <div class="button-group">
+                    <button class="btn-add" id="setAdminPassword">设置密码</button>
+                    <button class="btn-reset" id="removeAdminPassword">移除密码</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <!-- 宽度设置 -->
+            <div class="width-settings">
+                <label>页面宽度:</label>
+                <div class="width-mode">
+                    <label>
+                        <input type="radio" name="widthMode" value="fullscreen" checked>
+                        全屏
+                    </label>
+                    <label>
+                        <input type="radio" name="widthMode" value="custom">
+                        自定义
+                    </label>
+                </div>
+                <div class="width-input-group">
+                    <input type="number" id="customWidth" min="800" max="3840" value="1200" step="50" disabled>
+                    <span>px</span>
+                </div>
+            </div>
+            <p style="margin-top: 10px;">数据保存在本地浏览器中 · 刷新页面不会丢失</p>
+        </footer>
+    </div>
+
+    <script>
+        // 初始化数据
+        let tracks = JSON.parse(localStorage.getItem('tracks')) || [
+            { id: 'shanghai', name: '上海国际赛车场' },
+            { id: 'suzuka', name: '铃鹿赛道' },
+            { id: 'spa', name: '斯帕赛道' }
+        ];
+        let currentTrackId = localStorage.getItem('currentTrackId') || (tracks.length > 0 ? tracks[0].id : null);
+
+        // 首次使用时保存默认赛道
+        if (!localStorage.getItem('tracks')) {
+            localStorage.setItem('tracks', JSON.stringify(tracks));
+        }
+        if (!localStorage.getItem('currentTrackId') && currentTrackId) {
+            localStorage.setItem('currentTrackId', currentTrackId);
+        }
+
+        // 为了兼容旧数据，如果存在旧的lapRecords，将其迁移到第一个赛道
+        const oldRecords = JSON.parse(localStorage.getItem('lapRecords'));
+        if (oldRecords && oldRecords.length > 0 && currentTrackId) {
+            const trackRecordsKey = `lapRecords_${currentTrackId}`;
+            if (!localStorage.getItem(trackRecordsKey)) {
+                localStorage.setItem(trackRecordsKey, JSON.stringify(oldRecords));
+            }
+            localStorage.removeItem('lapRecords');
+        }
+
+        let records = [];
+        let carModels = JSON.parse(localStorage.getItem('carModels')) || [
+            "法拉利 SF90", "梅赛德斯 W12", "红牛 RB16B",
+            "迈凯伦 MCL35M", "阿尔派 A521", "阿斯顿马丁 AMR21"
+        ];
+
+        // DOM元素
+        const container = document.querySelector('.container');
+        const leaderboardList = document.getElementById('leaderboardList');
+        const editList = document.getElementById('editList');
+        const carList = document.getElementById('carList');
+        const trackList = document.getElementById('trackList');
+        const trackSelect = document.getElementById('trackSelect');
+        const recordTrackSelect = document.getElementById('recordTrack');
+        const carModelSelect = document.getElementById('carModel');
+        const driverNameInput = document.getElementById('driverName');
+        const minutesInput = document.getElementById('minutes');
+        const secondsInput = document.getElementById('seconds');
+        const millisecondsInput = document.getElementById('milliseconds');
+        const addRecordBtn = document.getElementById('addRecord');
+        const resetFormBtn = document.getElementById('resetForm');
+        const newCarModelInput = document.getElementById('newCarModel');
+        const addCarModelBtn = document.getElementById('addCarModel');
+        const newTrackNameInput = document.getElementById('newTrackName');
+        const addTrackBtn = document.getElementById('addTrack');
+        const toggleManagementBtn = document.getElementById('toggleManagement');
+        const managementPanel = document.getElementById('managementPanel');
+        const panelTabs = document.querySelectorAll('.panel-tab');
+        const panelContents = document.querySelectorAll('.panel-content');
+        const widthModeRadios = document.querySelectorAll('input[name="widthMode"]');
+        const customWidthInput = document.getElementById('customWidth');
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCurrentTrackRecords();
+            renderTracks();
+            renderLeaderboard();
+            renderEditList();
+            renderCarModels();
+            updateFilterOptions();
+            loadWidthSettings();
+            loadThemeSettings();
+            setupEventListeners();
+        });
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 管理面板切换
+            toggleManagementBtn.addEventListener('click', function() {
+                // 检查是否设置了管理员密码
+                const savedPassword = localStorage.getItem('adminPassword');
+
+                // 如果面板已打开，直接关闭
+                if (managementPanel.classList.contains('active')) {
+                    managementPanel.classList.remove('active');
+                    this.textContent = '管理数据';
+                    return;
+                }
+
+                // 如果设置了密码，需要验证
+                if (savedPassword) {
+                    const inputPassword = prompt('请输入管理员密码:');
+                    if (inputPassword !== savedPassword) {
+                        alert('密码错误！');
+                        return;
+                    }
+                }
+
+                // 验证通过或无密码保护，打开面板
+                managementPanel.classList.add('active');
+                this.textContent = '隐藏管理';
+            });
+            
+            // 面板标签切换
+            panelTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // 更新标签状态
+                    panelTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 更新内容显示
+                    panelContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(`${tabId}Panel`).classList.add('active');
+                });
+            });
+
+            // 添加记录按钮事件
+            addRecordBtn.addEventListener('click', function() {
+                const driverName = driverNameInput.value.trim();
+                const minutes = parseInt(minutesInput.value);
+                const seconds = parseInt(secondsInput.value);
+                const milliseconds = parseInt(millisecondsInput.value);
+                const carModel = carModelSelect.value;
+                const selectedTrackId = recordTrackSelect.value;
+
+                // 验证输入
+                if (!driverName) {
+                    alert('请输入车手姓名');
+                    return;
+                }
+
+                if (isNaN(minutes) || isNaN(seconds) || isNaN(milliseconds) ||
+                    minutes < 0 || seconds < 0 || milliseconds < 0 ||
+                    seconds > 59 || milliseconds > 999) {
+                    alert('请输入有效的时间值');
+                    return;
+                }
+
+                // 格式化时间
+                const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
+
+                // 计算总毫秒数用于排序
+                const totalMilliseconds = minutes * 60000 + seconds * 1000 + milliseconds;
+
+                // 创建新记录
+                const newRecord = {
+                    driverName,
+                    formattedTime,
+                    totalMilliseconds,
+                    carModel
+                };
+
+                // 添加到选定赛道的记录中
+                const trackRecordsKey = `lapRecords_${selectedTrackId}`;
+                let trackRecords = JSON.parse(localStorage.getItem(trackRecordsKey)) || [];
+                trackRecords.push(newRecord);
+                localStorage.setItem(trackRecordsKey, JSON.stringify(trackRecords));
+
+                // 如果添加的是当前赛道的记录，重新加载并刷新排行榜
+                if (selectedTrackId === currentTrackId) {
+                    loadCurrentTrackRecords();
+                    renderLeaderboard();
+                }
+
+                // 刷新编辑列表和筛选器
+                renderEditList();
+                updateFilterOptions();
+                resetForm();
+
+                alert(`记录已添加到 ${tracks.find(t => t.id === selectedTrackId)?.name || '选定赛道'}！`);
+            });
+
+            // 重置表单按钮事件
+            resetFormBtn.addEventListener('click', function() {
+                resetForm();
+            });
+
+            // 添加车型按钮事件
+            addCarModelBtn.addEventListener('click', function() {
+                const newCar = newCarModelInput.value.trim();
+                if (!newCar) {
+                    alert('请输入车型名称');
+                    return;
+                }
+
+                if (carModels.includes(newCar)) {
+                    alert('该车型已存在');
+                    return;
+                }
+
+                carModels.push(newCar);
+                saveCarModels();
+                renderCarModels();
+                newCarModelInput.value = '';
+            });
+
+            // 添加赛道按钮事件
+            addTrackBtn.addEventListener('click', function() {
+                const newTrackName = newTrackNameInput.value.trim();
+                if (!newTrackName) {
+                    alert('请输入赛道名称');
+                    return;
+                }
+
+                const trackId = 'track_' + Date.now();
+                const newTrack = { id: trackId, name: newTrackName };
+
+                if (tracks.some(t => t.name === newTrackName)) {
+                    alert('该赛道已存在');
+                    return;
+                }
+
+                tracks.push(newTrack);
+                saveTracks();
+
+                // 如果这是第一个赛道，设置为当前赛道
+                if (tracks.length === 1) {
+                    currentTrackId = trackId;
+                    localStorage.setItem('currentTrackId', currentTrackId);
+                    loadCurrentTrackRecords();
+                    renderLeaderboard();
+                    renderEditList();
+                    updateFilterOptions();
+                }
+
+                renderTracks();
+                newTrackNameInput.value = '';
+            });
+
+            // 赛道选择器事件
+            trackSelect.addEventListener('change', function() {
+                currentTrackId = this.value;
+                localStorage.setItem('currentTrackId', currentTrackId);
+                loadCurrentTrackRecords();
+                renderLeaderboard();
+                renderEditList();
+                updateFilterOptions();
+            });
+
+            // 宽度模式切换事件
+            widthModeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'fullscreen') {
+                        customWidthInput.disabled = true;
+                        container.classList.remove('custom-width');
+                        localStorage.setItem('widthMode', 'fullscreen');
+                    } else {
+                        customWidthInput.disabled = false;
+                        applyCustomWidth();
+                        localStorage.setItem('widthMode', 'custom');
+                    }
+                });
+            });
+
+            // 自定义宽度输入事件
+            customWidthInput.addEventListener('input', function() {
+                if (document.querySelector('input[name="widthMode"]:checked').value === 'custom') {
+                    applyCustomWidth();
+                }
+            });
+
+            customWidthInput.addEventListener('change', function() {
+                localStorage.setItem('customWidth', this.value);
+            });
+
+            // Logo更新按钮
+            const updateLogoBtn = document.getElementById('updateLogo');
+            const logoUrlInput = document.getElementById('logoUrl');
+            updateLogoBtn.addEventListener('click', function() {
+                const url = logoUrlInput.value.trim();
+                if (url) {
+                    updateLogo(url);
+                    alert('Logo已更新！');
+                } else {
+                    alert('请输入有效的Logo地址');
+                }
+            });
+
+            // 清除Logo按钮
+            const clearLogoBtn = document.getElementById('clearLogo');
+            clearLogoBtn.addEventListener('click', function() {
+                logoUrlInput.value = '';
+                updateLogo('');
+                alert('已清除Logo，恢复显示文字');
+            });
+
+            // 主题选择器
+            const themeOptions = document.querySelectorAll('.theme-option');
+            themeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const theme = this.getAttribute('data-theme');
+                    applyTheme(theme);
+                    themeOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // 自定义颜色应用
+            const applyCustomColorBtn = document.getElementById('applyCustomColor');
+            const primaryColorInput = document.getElementById('primaryColor');
+            const secondaryColorInput = document.getElementById('secondaryColor');
+            applyCustomColorBtn.addEventListener('click', function() {
+                const primary = primaryColorInput.value;
+                const secondary = secondaryColorInput.value;
+                applyCustomColors(primary, secondary);
+                themeOptions.forEach(opt => opt.classList.remove('active'));
+            });
+
+            // 恢复默认主题
+            const resetThemeBtn = document.getElementById('resetTheme');
+            resetThemeBtn.addEventListener('click', function() {
+                applyTheme('red');
+                themeOptions.forEach(opt => opt.classList.remove('active'));
+                themeOptions[0].classList.add('active');
+                alert('已恢复默认主题');
+            });
+
+            // 设置管理员密码
+            const setAdminPasswordBtn = document.getElementById('setAdminPassword');
+            const removeAdminPasswordBtn = document.getElementById('removeAdminPassword');
+            const adminPasswordInput = document.getElementById('adminPassword');
+            const passwordStatusSpan = document.getElementById('passwordStatus');
+
+            // 更新密码状态显示
+            function updatePasswordStatus() {
+                const hasPassword = localStorage.getItem('adminPassword');
+                if (passwordStatusSpan) {
+                    passwordStatusSpan.textContent = hasPassword ? '已设置' : '未设置';
+                }
+            }
+
+            setAdminPasswordBtn.addEventListener('click', function() {
+                const password = adminPasswordInput.value.trim();
+
+                if (password === '') {
+                    alert('请输入密码！如需移除密码保护，请点击"移除密码"按钮');
+                    return;
+                }
+
+                // 设置密码
+                const confirmPassword = prompt('请再次输入密码以确认:');
+                if (confirmPassword === password) {
+                    localStorage.setItem('adminPassword', password);
+                    adminPasswordInput.value = '';
+                    updatePasswordStatus();
+                    alert('管理员密码已设置！');
+                } else {
+                    alert('两次输入的密码不一致，请重试');
+                }
+            });
+
+            // 移除密码按钮
+            removeAdminPasswordBtn.addEventListener('click', function() {
+                const hasPassword = localStorage.getItem('adminPassword');
+                if (!hasPassword) {
+                    alert('当前未设置密码保护');
+                    return;
+                }
+
+                if (confirm('确定要移除管理员密码保护吗？')) {
+                    localStorage.removeItem('adminPassword');
+                    adminPasswordInput.value = '';
+                    updatePasswordStatus();
+                    alert('已移除密码保护');
+                }
+            });
+
+            // 页面加载时更新密码状态
+            updatePasswordStatus();
+
+            // 筛选器事件监听
+            const filterTrackSelect = document.getElementById('filterTrack');
+            const filterCarSelect = document.getElementById('filterCar');
+            const clearFiltersBtn = document.getElementById('clearFilters');
+
+            if (filterTrackSelect) {
+                filterTrackSelect.addEventListener('change', function() {
+                    renderEditList();
+                });
+            }
+
+            if (filterCarSelect) {
+                filterCarSelect.addEventListener('change', function() {
+                    renderEditList();
+                });
+            }
+
+            if (clearFiltersBtn) {
+                clearFiltersBtn.addEventListener('click', function() {
+                    filterTrackSelect.value = '';
+                    filterCarSelect.value = '';
+                    renderEditList();
+                });
+            }
+        }
+
+        // 应用自定义宽度
+        function applyCustomWidth() {
+            const width = customWidthInput.value;
+            container.style.setProperty('--custom-width', width + 'px');
+            container.classList.add('custom-width');
+        }
+
+        // 加载宽度设置
+        function loadWidthSettings() {
+            const savedMode = localStorage.getItem('widthMode') || 'fullscreen';
+            const savedWidth = localStorage.getItem('customWidth') || '1200';
+
+            customWidthInput.value = savedWidth;
+
+            if (savedMode === 'custom') {
+                document.querySelector('input[name="widthMode"][value="custom"]').checked = true;
+                customWidthInput.disabled = false;
+                applyCustomWidth();
+            } else {
+                document.querySelector('input[name="widthMode"][value="fullscreen"]').checked = true;
+                customWidthInput.disabled = true;
+                container.classList.remove('custom-width');
+            }
+        }
+
+        // 主题颜色配置
+        const themes = {
+            red: {
+                primary: '#ff0000',
+                secondary: '#cc0000',
+                bg: '#1a0000',
+                border: 'rgba(255, 0, 0, 0.3)',
+                borderLight: 'rgba(255, 0, 0, 0.1)',
+                glow: 'rgba(255, 0, 0, 0.5)',
+                scrollbar: 'rgba(255, 0, 0, 0.5)',
+                scrollbarHover: 'rgba(255, 0, 0, 0.8)',
+                headerBg: 'rgba(255, 0, 0, 0.2)',
+                hoverBg: 'rgba(255, 0, 0, 0.1)',
+                rank1Bg: 'rgba(255, 0, 0, 0.2)',
+                rank2Color: '#cc0000',
+                rank2Bg: 'rgba(204, 0, 0, 0.15)',
+                rank3Color: '#990000',
+                rank3Bg: 'rgba(153, 0, 0, 0.1)',
+                btnBg: 'rgba(255, 0, 0, 0.2)',
+                btnHover: 'rgba(255, 0, 0, 0.4)',
+                btnColor: '#ff6666'
+            },
+            blue: {
+                primary: '#0066ff',
+                secondary: '#0044cc',
+                bg: '#001a33',
+                border: 'rgba(0, 102, 255, 0.3)',
+                borderLight: 'rgba(0, 102, 255, 0.1)',
+                glow: 'rgba(0, 102, 255, 0.5)',
+                scrollbar: 'rgba(0, 102, 255, 0.5)',
+                scrollbarHover: 'rgba(0, 102, 255, 0.8)',
+                headerBg: 'rgba(0, 102, 255, 0.2)',
+                hoverBg: 'rgba(0, 102, 255, 0.1)',
+                rank1Bg: 'rgba(0, 102, 255, 0.2)',
+                rank2Color: '#0044cc',
+                rank2Bg: 'rgba(0, 68, 204, 0.15)',
+                rank3Color: '#003399',
+                rank3Bg: 'rgba(0, 51, 153, 0.1)',
+                btnBg: 'rgba(0, 102, 255, 0.2)',
+                btnHover: 'rgba(0, 102, 255, 0.4)',
+                btnColor: '#6699ff'
+            },
+            green: {
+                primary: '#00cc44',
+                secondary: '#009933',
+                bg: '#001a0a',
+                border: 'rgba(0, 204, 68, 0.3)',
+                borderLight: 'rgba(0, 204, 68, 0.1)',
+                glow: 'rgba(0, 204, 68, 0.5)',
+                scrollbar: 'rgba(0, 204, 68, 0.5)',
+                scrollbarHover: 'rgba(0, 204, 68, 0.8)',
+                headerBg: 'rgba(0, 204, 68, 0.2)',
+                hoverBg: 'rgba(0, 204, 68, 0.1)',
+                rank1Bg: 'rgba(0, 204, 68, 0.2)',
+                rank2Color: '#009933',
+                rank2Bg: 'rgba(0, 153, 51, 0.15)',
+                rank3Color: '#007722',
+                rank3Bg: 'rgba(0, 119, 34, 0.1)',
+                btnBg: 'rgba(0, 204, 68, 0.2)',
+                btnHover: 'rgba(0, 204, 68, 0.4)',
+                btnColor: '#66ff99'
+            },
+            purple: {
+                primary: '#9933ff',
+                secondary: '#6600cc',
+                bg: '#1a0033',
+                border: 'rgba(153, 51, 255, 0.3)',
+                borderLight: 'rgba(153, 51, 255, 0.1)',
+                glow: 'rgba(153, 51, 255, 0.5)',
+                scrollbar: 'rgba(153, 51, 255, 0.5)',
+                scrollbarHover: 'rgba(153, 51, 255, 0.8)',
+                headerBg: 'rgba(153, 51, 255, 0.2)',
+                hoverBg: 'rgba(153, 51, 255, 0.1)',
+                rank1Bg: 'rgba(153, 51, 255, 0.2)',
+                rank2Color: '#6600cc',
+                rank2Bg: 'rgba(102, 0, 204, 0.15)',
+                rank3Color: '#550099',
+                rank3Bg: 'rgba(85, 0, 153, 0.1)',
+                btnBg: 'rgba(153, 51, 255, 0.2)',
+                btnHover: 'rgba(153, 51, 255, 0.4)',
+                btnColor: '#cc99ff'
+            },
+            orange: {
+                primary: '#ff9900',
+                secondary: '#cc6600',
+                bg: '#331a00',
+                border: 'rgba(255, 153, 0, 0.3)',
+                borderLight: 'rgba(255, 153, 0, 0.1)',
+                glow: 'rgba(255, 153, 0, 0.5)',
+                scrollbar: 'rgba(255, 153, 0, 0.5)',
+                scrollbarHover: 'rgba(255, 153, 0, 0.8)',
+                headerBg: 'rgba(255, 153, 0, 0.2)',
+                hoverBg: 'rgba(255, 153, 0, 0.1)',
+                rank1Bg: 'rgba(255, 153, 0, 0.2)',
+                rank2Color: '#cc6600',
+                rank2Bg: 'rgba(204, 102, 0, 0.15)',
+                rank3Color: '#995500',
+                rank3Bg: 'rgba(153, 85, 0, 0.1)',
+                btnBg: 'rgba(255, 153, 0, 0.2)',
+                btnHover: 'rgba(255, 153, 0, 0.4)',
+                btnColor: '#ffcc66'
+            }
+        };
+
+        // 应用主题
+        function applyTheme(themeName) {
+            const theme = themes[themeName];
+            if (!theme) return;
+
+            const root = document.documentElement;
+            root.style.setProperty('--theme-primary', theme.primary);
+            root.style.setProperty('--theme-secondary', theme.secondary);
+            root.style.setProperty('--theme-bg', theme.bg);
+            root.style.setProperty('--theme-border', theme.border);
+            root.style.setProperty('--theme-border-light', theme.borderLight);
+            root.style.setProperty('--theme-glow', theme.glow);
+            root.style.setProperty('--theme-scrollbar', theme.scrollbar);
+            root.style.setProperty('--theme-scrollbar-hover', theme.scrollbarHover);
+            root.style.setProperty('--theme-header-bg', theme.headerBg);
+            root.style.setProperty('--theme-hover-bg', theme.hoverBg);
+            root.style.setProperty('--theme-rank1-bg', theme.rank1Bg);
+            root.style.setProperty('--theme-rank2-color', theme.rank2Color);
+            root.style.setProperty('--theme-rank2-bg', theme.rank2Bg);
+            root.style.setProperty('--theme-rank3-color', theme.rank3Color);
+            root.style.setProperty('--theme-rank3-bg', theme.rank3Bg);
+            root.style.setProperty('--theme-btn-bg', theme.btnBg);
+            root.style.setProperty('--theme-btn-hover', theme.btnHover);
+            root.style.setProperty('--theme-btn-color', theme.btnColor);
+
+            localStorage.setItem('theme', themeName);
+        }
+
+        // 应用自定义颜色
+        function applyCustomColors(primary, secondary) {
+            const root = document.documentElement;
+            const primaryRgb = hexToRgb(primary);
+            const secondaryRgb = hexToRgb(secondary);
+
+            const bgColor = `rgb(${Math.floor(primaryRgb.r * 0.1)}, ${Math.floor(primaryRgb.g * 0.1)}, ${Math.floor(primaryRgb.b * 0.1)})`;
+
+            // 计算衍生颜色
+            const rank2Rgb = {
+                r: Math.floor(primaryRgb.r * 0.8),
+                g: Math.floor(primaryRgb.g * 0.8),
+                b: Math.floor(primaryRgb.b * 0.8)
+            };
+            const rank3Rgb = {
+                r: Math.floor(primaryRgb.r * 0.6),
+                g: Math.floor(primaryRgb.g * 0.6),
+                b: Math.floor(primaryRgb.b * 0.6)
+            };
+            const btnColorRgb = {
+                r: Math.min(255, primaryRgb.r + 40),
+                g: Math.min(255, primaryRgb.g + 40),
+                b: Math.min(255, primaryRgb.b + 40)
+            };
+
+            root.style.setProperty('--theme-primary', primary);
+            root.style.setProperty('--theme-secondary', secondary);
+            root.style.setProperty('--theme-bg', bgColor);
+            root.style.setProperty('--theme-border', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.3)`);
+            root.style.setProperty('--theme-border-light', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.1)`);
+            root.style.setProperty('--theme-glow', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.5)`);
+            root.style.setProperty('--theme-scrollbar', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.5)`);
+            root.style.setProperty('--theme-scrollbar-hover', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.8)`);
+            root.style.setProperty('--theme-header-bg', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.2)`);
+            root.style.setProperty('--theme-hover-bg', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.1)`);
+            root.style.setProperty('--theme-rank1-bg', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.2)`);
+            root.style.setProperty('--theme-rank2-color', `rgb(${rank2Rgb.r}, ${rank2Rgb.g}, ${rank2Rgb.b})`);
+            root.style.setProperty('--theme-rank2-bg', `rgba(${rank2Rgb.r}, ${rank2Rgb.g}, ${rank2Rgb.b}, 0.15)`);
+            root.style.setProperty('--theme-rank3-color', `rgb(${rank3Rgb.r}, ${rank3Rgb.g}, ${rank3Rgb.b})`);
+            root.style.setProperty('--theme-rank3-bg', `rgba(${rank3Rgb.r}, ${rank3Rgb.g}, ${rank3Rgb.b}, 0.1)`);
+            root.style.setProperty('--theme-btn-bg', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.2)`);
+            root.style.setProperty('--theme-btn-hover', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.4)`);
+            root.style.setProperty('--theme-btn-color', `rgb(${btnColorRgb.r}, ${btnColorRgb.g}, ${btnColorRgb.b})`);
+
+            localStorage.setItem('theme', 'custom');
+            localStorage.setItem('customPrimary', primary);
+            localStorage.setItem('customSecondary', secondary);
+        }
+
+        // 辅助函数：将hex颜色转换为rgb
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        // 更新Logo
+        function updateLogo(url) {
+            const logoImg = document.querySelector('.logoimg');
+            const logoText = document.querySelector('.logo-text');
+
+            if (url && url.trim() !== '') {
+                logoImg.src = url;
+                logoImg.style.display = 'block';
+                logoText.style.display = 'none';
+                localStorage.setItem('logoUrl', url);
+            } else {
+                logoImg.style.display = 'none';
+                logoText.style.display = 'block';
+                localStorage.removeItem('logoUrl');
+            }
+        }
+
+        // 加载主题设置
+        function loadThemeSettings() {
+            const savedTheme = localStorage.getItem('theme') || 'red';
+
+            if (savedTheme === 'custom') {
+                const customPrimary = localStorage.getItem('customPrimary') || '#ff0000';
+                const customSecondary = localStorage.getItem('customSecondary') || '#cc0000';
+                applyCustomColors(customPrimary, customSecondary);
+                document.getElementById('primaryColor').value = customPrimary;
+                document.getElementById('secondaryColor').value = customSecondary;
+            } else {
+                applyTheme(savedTheme);
+                const themeOptions = document.querySelectorAll('.theme-option');
+                themeOptions.forEach(opt => {
+                    if (opt.getAttribute('data-theme') === savedTheme) {
+                        opt.classList.add('active');
+                    }
+                });
+            }
+
+            // 加载Logo设置
+            const savedLogoUrl = localStorage.getItem('logoUrl');
+            const logoImg = document.querySelector('.logoimg');
+            const logoText = document.querySelector('.logo-text');
+
+            if (savedLogoUrl) {
+                logoImg.src = savedLogoUrl;
+                logoImg.style.display = 'block';
+                logoText.style.display = 'none';
+                document.getElementById('logoUrl').value = savedLogoUrl;
+            } else {
+                logoImg.style.display = 'none';
+                logoText.style.display = 'block';
+            }
+        }
+
+        // 编辑记录
+        function editRecord(index) {
+            const record = records[index];
+            
+            // 渲染编辑表单
+            renderEditForm(index);
+        }
+
+        // 渲染编辑表单
+        function renderEditForm(index) {
+            const record = records[index];
+            
+            const editFormHTML = `
+                <div class="edit-form">
+                    <div class="form-group">
+                        <label for="editDriverName">车手姓名</label>
+                        <input type="text" id="editDriverName" value="${record.driverName}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>圈速</label>
+                        <div class="time-inputs">
+                            <div>
+                                <label for="editMinutes">分钟</label>
+                                <input type="number" id="editMinutes" min="0" max="59" value="${record.formattedTime.split(':')[0]}">
+                            </div>
+                            <div>
+                                <label for="editSeconds">秒钟</label>
+                                <input type="number" id="editSeconds" min="0" max="59" value="${record.formattedTime.split(':')[1]}">
+                            </div>
+                            <div>
+                                <label for="editMilliseconds">毫秒</label>
+                                <input type="number" id="editMilliseconds" min="0" max="999" value="${record.formattedTime.split(':')[2]}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editCarModel">赛车型号</label>
+                        <select id="editCarModel">
+                            ${carModels.map(car => 
+                                `<option value="${car}" ${car === record.carModel ? 'selected' : ''}>${car}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-add" onclick="updateRecord(${index})">更新记录</button>
+                        <button class="btn-reset" onclick="renderEditList()">取消</button>
+                    </div>
+                </div>
+            `;
+            
+            editList.innerHTML = editFormHTML;
+        }
+
+        // 更新记录
+        function updateRecord(index) {
+            const driverName = document.getElementById('editDriverName').value.trim();
+            const minutes = parseInt(document.getElementById('editMinutes').value);
+            const seconds = parseInt(document.getElementById('editSeconds').value);
+            const milliseconds = parseInt(document.getElementById('editMilliseconds').value);
+            const carModel = document.getElementById('editCarModel').value;
+
+            // 验证输入
+            if (!driverName) {
+                alert('请输入车手姓名');
+                return;
+            }
+
+            if (isNaN(minutes) || isNaN(seconds) || isNaN(milliseconds) ||
+                minutes < 0 || seconds < 0 || milliseconds < 0 ||
+                seconds > 59 || milliseconds > 999) {
+                alert('请输入有效的时间值');
+                return;
+            }
+
+            // 格式化时间
+            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
+            
+            // 计算总毫秒数用于排序
+            const totalMilliseconds = minutes * 60000 + seconds * 1000 + milliseconds;
+
+            // 更新记录
+            records[index] = {
+                driverName,
+                formattedTime,
+                totalMilliseconds,
+                carModel
+            };
+
+            // 保存到localStorage并重新渲染
+            saveRecords();
+            renderLeaderboard();
+            renderEditList();
+            updateFilterOptions();
+        }
+
+        // 删除记录
+        function deleteRecord(index) {
+            if (confirm('确定要删除这条记录吗？')) {
+                records.splice(index, 1);
+                saveRecords();
+                renderLeaderboard();
+                renderEditList();
+                updateFilterOptions();
+            }
+        }
+
+        // 删除赛道
+        function deleteTrack(index) {
+            if (tracks.length <= 1) {
+                alert('至少需要保留一个赛道');
+                return;
+            }
+
+            const track = tracks[index];
+            if (confirm(`确定要删除赛道"${track.name}"吗？该赛道的所有记录也将被删除！`)) {
+                // 删除该赛道的所有记录
+                const trackRecordsKey = `lapRecords_${track.id}`;
+                localStorage.removeItem(trackRecordsKey);
+
+                // 从赛道列表中删除
+                tracks.splice(index, 1);
+
+                // 如果删除的是当前赛道，切换到第一个赛道
+                if (track.id === currentTrackId) {
+                    currentTrackId = tracks[0].id;
+                    localStorage.setItem('currentTrackId', currentTrackId);
+                    loadCurrentTrackRecords();
+                    renderLeaderboard();
+                    renderEditList();
+                    updateFilterOptions();
+                }
+
+                saveTracks();
+                renderTracks();
+            }
+        }
+
+        // 删除车型
+        function deleteCarModel(index) {
+            if (confirm('确定要删除这个车型吗？使用此车型的记录将不会被删除，但可能无法正确显示。')) {
+                carModels.splice(index, 1);
+                saveCarModels();
+                renderCarModels();
+            }
+        }
+
+        // 根据赛道ID删除特定记录（用于管理面板）
+        function deleteRecordByTrack(trackId, driverName, formattedTime, carModel) {
+            if (confirm('确定要删除这条记录吗？')) {
+                const trackRecordsKey = `lapRecords_${trackId}`;
+                let trackRecords = JSON.parse(localStorage.getItem(trackRecordsKey)) || [];
+
+                // 找到并删除匹配的记录
+                trackRecords = trackRecords.filter(record => {
+                    return !(record.driverName === driverName &&
+                             record.formattedTime === formattedTime &&
+                             record.carModel === carModel);
+                });
+
+                localStorage.setItem(trackRecordsKey, JSON.stringify(trackRecords));
+
+                // 如果删除的是当前赛道的记录，重新加载当前赛道记录
+                if (trackId === currentTrackId) {
+                    loadCurrentTrackRecords();
+                    renderLeaderboard();
+                }
+
+                renderEditList();
+                updateFilterOptions();
+            }
+        }
+
+        // 根据赛道ID编辑特定记录（用于管理面板）
+        function editRecordByTrack(trackId, recordIndex) {
+            const trackRecordsKey = `lapRecords_${trackId}`;
+            const trackRecords = JSON.parse(localStorage.getItem(trackRecordsKey)) || [];
+            const record = trackRecords[recordIndex];
+
+            if (!record) {
+                alert('记录不存在');
+                return;
+            }
+
+            // 提示用户输入新值
+            const newDriverName = prompt('车手姓名:', record.driverName);
+            if (!newDriverName) return;
+
+            const timeMatch = record.formattedTime.match(/(\d+):(\d+):(\d+)/);
+            const newMinutes = prompt('分钟:', timeMatch[1]);
+            const newSeconds = prompt('秒:', timeMatch[2]);
+            const newMilliseconds = prompt('毫秒:', timeMatch[3]);
+
+            if (!newMinutes || !newSeconds || !newMilliseconds) return;
+
+            const minutes = parseInt(newMinutes);
+            const seconds = parseInt(newSeconds);
+            const milliseconds = parseInt(newMilliseconds);
+
+            if (isNaN(minutes) || isNaN(seconds) || isNaN(milliseconds) ||
+                minutes < 0 || seconds < 0 || milliseconds < 0 ||
+                seconds > 59 || milliseconds > 999) {
+                alert('请输入有效的时间值');
+                return;
+            }
+
+            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
+            const totalMilliseconds = minutes * 60000 + seconds * 1000 + milliseconds;
+
+            // 更新记录
+            trackRecords[recordIndex] = {
+                driverName: newDriverName,
+                formattedTime,
+                totalMilliseconds,
+                carModel: record.carModel
+            };
+
+            localStorage.setItem(trackRecordsKey, JSON.stringify(trackRecords));
+
+            // 如果编辑的是当前赛道的记录，重新加载当前赛道记录
+            if (trackId === currentTrackId) {
+                loadCurrentTrackRecords();
+                renderLeaderboard();
+            }
+
+            renderEditList();
+            updateFilterOptions();
+        }
+
+        // 加载当前赛道的记录
+        function loadCurrentTrackRecords() {
+            if (!currentTrackId) {
+                records = [];
+                return;
+            }
+            const trackRecordsKey = `lapRecords_${currentTrackId}`;
+            records = JSON.parse(localStorage.getItem(trackRecordsKey)) || [];
+        }
+
+        // 保存记录到localStorage（按赛道分开存储）
+        function saveRecords() {
+            if (!currentTrackId) return;
+            const trackRecordsKey = `lapRecords_${currentTrackId}`;
+            localStorage.setItem(trackRecordsKey, JSON.stringify(records));
+        }
+
+        // 加载所有赛道的记录（用于管理面板筛选）
+        function loadAllTrackRecords() {
+            const allRecords = [];
+            tracks.forEach(track => {
+                const trackRecordsKey = `lapRecords_${track.id}`;
+                const trackRecords = JSON.parse(localStorage.getItem(trackRecordsKey)) || [];
+                trackRecords.forEach(record => {
+                    allRecords.push({
+                        ...record,
+                        trackId: track.id,
+                        trackName: track.name
+                    });
+                });
+            });
+            return allRecords;
+        }
+
+        // 保存赛道列表到localStorage
+        function saveTracks() {
+            localStorage.setItem('tracks', JSON.stringify(tracks));
+        }
+
+        // 保存车型到localStorage
+        function saveCarModels() {
+            localStorage.setItem('carModels', JSON.stringify(carModels));
+        }
+
+        // 重置表单
+        function resetForm() {
+            driverNameInput.value = '';
+            minutesInput.value = '1';
+            secondsInput.value = '33';
+            millisecondsInput.value = '999';
+            carModelSelect.selectedIndex = 0;
+        }
+
+        // 渲染排行榜
+        function renderLeaderboard() {
+            // 按时间排序（时间越短排名越高）
+            records.sort((a, b) => a.totalMilliseconds - b.totalMilliseconds);
+            
+            if (records.length === 0) {
+                leaderboardList.innerHTML = `
+                    <div class="empty-state">
+                        <i>🏎️</i>
+                        <p>暂无圈速记录</p>
+                        <p>点击下方"管理数据"添加记录</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let leaderboardHTML = '';
+            
+            records.forEach((record, index) => {
+                const rankClass = index === 0 ? 'rank-1' : 
+                                 index === 1 ? 'rank-2' : 
+                                 index === 2 ? 'rank-3' : '';
+                
+                leaderboardHTML += `
+                    <div class="leaderboard-item ${rankClass}">
+                        <div class="rank">#${index + 1}</div>
+                        <div class="driver-name">${record.driverName}</div>
+                        <div class="lap-time">${record.formattedTime}</div>
+                        <div class="car-model">${record.carModel}</div>
+                    </div>
+                `;
+            });
+            
+            leaderboardList.innerHTML = leaderboardHTML;
+        }
+
+        // 渲染编辑列表
+        function renderEditList() {
+            let editListHTML = '';
+
+            // 获取所有赛道的记录
+            const allRecords = loadAllTrackRecords();
+
+            // 获取筛选条件
+            const filterTrackValue = document.getElementById('filterTrack')?.value || '';
+            const filterCarValue = document.getElementById('filterCar')?.value || '';
+
+            // 根据筛选条件过滤记录
+            const filteredRecords = allRecords.filter(record => {
+                const trackMatch = !filterTrackValue || record.trackId === filterTrackValue;
+                const carMatch = !filterCarValue || record.carModel === filterCarValue;
+                return trackMatch && carMatch;
+            });
+
+            if (allRecords.length === 0) {
+                editListHTML = `
+                    <div class="empty-state">
+                        <i>🏎️</i>
+                        <p>暂无圈速记录</p>
+                        <p>请在上方表单中添加记录</p>
+                    </div>
+                `;
+            } else if (filteredRecords.length === 0) {
+                editListHTML = `
+                    <div class="empty-state">
+                        <i>🔍</i>
+                        <p>没有符合筛选条件的记录</p>
+                        <p>请尝试调整筛选条件</p>
+                    </div>
+                `;
+            } else {
+                filteredRecords.forEach((record, displayIndex) => {
+                    // 找到该记录在对应赛道记录数组中的索引
+                    const trackRecordsKey = `lapRecords_${record.trackId}`;
+                    const trackRecords = JSON.parse(localStorage.getItem(trackRecordsKey)) || [];
+                    const recordIndex = trackRecords.findIndex(r =>
+                        r.driverName === record.driverName &&
+                        r.formattedTime === record.formattedTime &&
+                        r.carModel === record.carModel
+                    );
+
+                    editListHTML += `
+                        <div class="car-item">
+                            <span>
+                                <strong>${record.driverName}</strong> -
+                                ${record.formattedTime} -
+                                ${record.carModel} -
+                                <em style="color: var(--theme-secondary, #cc0000);">${record.trackName}</em>
+                            </span>
+                            <div class="car-actions">
+                                <button class="btn-edit btn-small" onclick="editRecordByTrack('${record.trackId}', ${recordIndex})">编辑</button>
+                                <button class="btn-delete btn-small" onclick="deleteRecordByTrack('${record.trackId}', '${record.driverName}', '${record.formattedTime}', '${record.carModel}')">删除</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            editList.innerHTML = editListHTML;
+        }
+
+        // 渲染赛道选择器和列表
+        function renderTracks() {
+            // 更新赛道选择下拉框（用于切换显示的赛道）
+            trackSelect.innerHTML = tracks.map(track =>
+                `<option value="${track.id}" ${track.id === currentTrackId ? 'selected' : ''}>${track.name}</option>`
+            ).join('');
+
+            // 更新添加记录表单中的赛道选择器
+            if (recordTrackSelect) {
+                recordTrackSelect.innerHTML = tracks.map(track =>
+                    `<option value="${track.id}" ${track.id === currentTrackId ? 'selected' : ''}>${track.name}</option>`
+                ).join('');
+            }
+
+            // 渲染赛道管理列表
+            let trackListHTML = '';
+
+            if (tracks.length === 0) {
+                trackListHTML = '<div class="empty-state">暂无赛道，请添加</div>';
+            } else {
+                tracks.forEach((track, index) => {
+                    const isCurrentTrack = track.id === currentTrackId;
+                    trackListHTML += `
+                        <div class="car-item">
+                            <span>${track.name}${isCurrentTrack ? ' (当前)' : ''}</span>
+                            <div class="car-actions">
+                                <button class="btn-delete btn-small" onclick="deleteTrack(${index})" ${tracks.length <= 1 ? 'disabled' : ''}>删除</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            trackList.innerHTML = trackListHTML;
+        }
+
+        // 渲染车型列表
+        function renderCarModels() {
+            // 更新车型选择下拉框
+            carModelSelect.innerHTML = carModels.map(car =>
+                `<option value="${car}">${car}</option>`
+            ).join('');
+
+            // 渲染车型管理列表
+            let carListHTML = '';
+
+            if (carModels.length === 0) {
+                carListHTML = '<div class="empty-state">暂无车型，请添加</div>';
+            } else {
+                carModels.forEach((car, index) => {
+                    carListHTML += `
+                        <div class="car-item">
+                            <span>${car}</span>
+                            <div class="car-actions">
+                                <button class="btn-delete btn-small" onclick="deleteCarModel(${index})">删除</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            carList.innerHTML = carListHTML;
+
+            // 同时更新筛选器中的车型选项
+            updateFilterOptions();
+        }
+
+        // 更新筛选器选项
+        function updateFilterOptions() {
+            const filterTrackSelect = document.getElementById('filterTrack');
+            const filterCarSelect = document.getElementById('filterCar');
+
+            if (!filterTrackSelect || !filterCarSelect) return;
+
+            // 保存当前选择的值
+            const currentTrackFilter = filterTrackSelect.value;
+            const currentCarFilter = filterCarSelect.value;
+
+            // 更新赛道筛选器
+            filterTrackSelect.innerHTML = '<option value="">全部赛道</option>' +
+                tracks.map(track =>
+                    `<option value="${track.id}" ${track.id === currentTrackFilter ? 'selected' : ''}>${track.name}</option>`
+                ).join('');
+
+            // 更新车型筛选器
+            filterCarSelect.innerHTML = '<option value="">全部车型</option>' +
+                carModels.map(car =>
+                    `<option value="${car}" ${car === currentCarFilter ? 'selected' : ''}>${car}</option>`
+                ).join('');
+        }
+
+        // 使函数在全局作用域可用
+        window.editRecord = editRecord;
+        window.deleteRecord = deleteRecord;
+        window.updateRecord = updateRecord;
+        window.deleteTrack = deleteTrack;
+        window.deleteCarModel = deleteCarModel;
+        window.editRecordByTrack = editRecordByTrack;
+        window.deleteRecordByTrack = deleteRecordByTrack;
+    </script>
+</body>
+</html>
