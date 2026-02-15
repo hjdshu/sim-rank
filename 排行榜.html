@@ -513,6 +513,56 @@
         }
 
         /* 密码对话框样式 */
+        .edit-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .edit-overlay.active {
+            display: flex;
+        }
+
+        .edit-dialog {
+            background: #1a1a1a;
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+            border-radius: 10px;
+            padding: 30px;
+            min-width: 360px;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .edit-dialog h3 {
+            margin-bottom: 20px;
+            color: var(--theme-primary, #ff0000);
+        }
+
+        .edit-dialog .form-group {
+            margin-bottom: 12px;
+        }
+
+        .edit-dialog .time-inputs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .edit-dialog .time-inputs > div {
+            flex: 1;
+        }
+
+        .edit-dialog .button-group {
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
         .password-overlay {
             display: none;
             position: fixed;
@@ -635,26 +685,6 @@
             font-size: 0.9rem;
         }
 
-        .custom-color-group {
-            display: flex;
-            gap: 15px;
-            align-items: flex-end;
-            flex-wrap: wrap;
-        }
-
-        .custom-color-group .form-group {
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .custom-color-group input[type="color"] {
-            width: 100%;
-            height: 50px;
-            border: 1px solid var(--theme-border, rgba(255, 255, 255, 0.3));
-            border-radius: 5px;
-            background: var(--theme-hover-bg, rgba(0, 0, 0, 0.3));
-            cursor: pointer;
-        }
 
         /* 动态主题变量 */
         :root {
@@ -736,53 +766,20 @@
             <!-- 编辑数据面板 -->
             <div class="panel-content active" id="editPanel">
                 <h2>添加新记录</h2>
-                <div class="edit-form">
-                    <div class="form-group">
-                        <label for="driverName">车手姓名</label>
-                        <input type="text" id="driverName" placeholder="输入车手姓名">
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 20px; padding: 15px; background: var(--theme-hover-bg, rgba(0, 0, 0, 0.2)); border-radius: 8px;">
+                    <input type="text" id="driverName" placeholder="车手姓名" style="width: 100px; margin: 0;">
+                    <div style="display: flex; align-items: center; gap: 2px;">
+                        <input type="number" id="minutes" min="0" max="59" placeholder="分" value="1" style="width: 55px; margin: 0; text-align: center;">
+                        <span style="color: #888;">:</span>
+                        <input type="number" id="seconds" min="0" max="59" placeholder="秒" value="33" style="width: 55px; margin: 0; text-align: center;">
+                        <span style="color: #888;">:</span>
+                        <input type="number" id="milliseconds" min="0" max="999" placeholder="毫秒" value="999" style="width: 65px; margin: 0; text-align: center;">
                     </div>
-                    
-                    <div class="form-group">
-                        <label>圈速</label>
-                        <div class="time-inputs">
-                            <div>
-                                <label for="minutes">分钟</label>
-                                <input type="number" id="minutes" min="0" max="59" placeholder="分" value="1">
-                            </div>
-                            <div>
-                                <label for="seconds">秒钟</label>
-                                <input type="number" id="seconds" min="0" max="59" placeholder="秒" value="33">
-                            </div>
-                            <div>
-                                <label for="milliseconds">毫秒</label>
-                                <input type="number" id="milliseconds" min="0" max="999" placeholder="毫秒" value="999">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="recordTrack">赛道</label>
-                        <select id="recordTrack">
-                            <!-- 赛道选项将通过JavaScript动态生成 -->
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="carModel">赛车型号</label>
-                        <select id="carModel">
-                            <!-- 车型选项将通过JavaScript动态生成 -->
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="recordDate">记录日期</label>
-                        <input type="date" id="recordDate">
-                    </div>
-
-                    <div class="button-group">
-                        <button class="btn-add" id="addRecord">添加记录</button>
-                        <button class="btn-reset" id="resetForm">重置表单</button>
-                    </div>
+                    <select id="recordTrack" style="width: auto; margin: 0;"></select>
+                    <select id="carModel" style="width: auto; margin: 0;"></select>
+                    <input type="date" id="recordDate" style="width: auto; margin: 0;">
+                    <button class="btn-add" id="addRecord" style="white-space: nowrap;">添加</button>
+                    <button class="btn-reset" id="resetForm" style="white-space: nowrap;">重置</button>
                 </div>
 
                 <h2>现有记录</h2>
@@ -814,11 +811,10 @@
             <!-- 赛道管理面板 -->
             <div class="panel-content" id="tracksPanel">
                 <h2>赛道管理</h2>
-                <div class="form-group">
-                    <label for="newTrackName">添加新赛道</label>
-                    <input type="text" id="newTrackName" placeholder="输入赛道名称，如：上海国际赛车场">
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                    <input type="text" id="newTrackName" placeholder="输入赛道名称" style="flex: 1; margin: 0;">
+                    <button class="btn-add" id="addTrack" style="white-space: nowrap;">添加赛道</button>
                 </div>
-                <button class="btn-add" id="addTrack">添加赛道</button>
 
                 <div class="car-management">
                     <h3>现有赛道</h3>
@@ -831,11 +827,10 @@
             <!-- 车型管理面板 -->
             <div class="panel-content" id="carsPanel">
                 <h2>车型管理</h2>
-                <div class="form-group">
-                    <label for="newCarModel">添加新车型</label>
-                    <input type="text" id="newCarModel" placeholder="输入新车型名称">
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                    <input type="text" id="newCarModel" placeholder="输入新车型名称" style="flex: 1; margin: 0;">
+                    <button class="btn-add" id="addCarModel" style="white-space: nowrap;">添加车型</button>
                 </div>
-                <button class="btn-add" id="addCarModel">添加车型</button>
 
                 <div class="car-management">
                     <h3>现有车型</h3>
@@ -862,13 +857,16 @@
 
                 <!-- Logo设置 -->
                 <div class="form-group">
-                    <label for="logoUrl">Logo图片地址</label>
-                    <input type="text" id="logoUrl" placeholder="输入Logo图片URL地址">
-                    <small style="color: #999; display: block; margin-top: 5px;">支持http://、https://或本地文件路径。留空显示"JAKE RACING"文字</small>
+                    <label for="logoText">Logo 文字</label>
+                    <input type="text" id="logoText" placeholder="留空则显示默认 JAKE RACING">
+                </div>
+                <div class="form-group">
+                    <label for="logoUrl">Logo 图片地址（优先于文字）</label>
+                    <input type="text" id="logoUrl" placeholder="输入图片URL，设置后文字Logo隐藏">
                 </div>
                 <div class="button-group">
                     <button class="btn-add" id="updateLogo">更新Logo</button>
-                    <button class="btn-reset" id="clearLogo">清除Logo</button>
+                    <button class="btn-reset" id="clearLogo">恢复默认</button>
                 </div>
 
                 <!-- 颜色主题设置 -->
@@ -894,20 +892,22 @@
                         <div class="theme-preview" style="background: linear-gradient(135deg, #ff9900, #cc6600);"></div>
                         <span>活力橙色</span>
                     </div>
-                </div>
-
-                <!-- 自定义颜色 -->
-                <h3 style="margin-top: 30px; margin-bottom: 15px;">自定义颜色</h3>
-                <div class="custom-color-group">
-                    <div class="form-group">
-                        <label for="primaryColor">主色调</label>
-                        <input type="color" id="primaryColor" value="#ff0000">
+                    <div class="theme-option" data-theme="gold">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #ffd700, #b8960c);"></div>
+                        <span>冠军金色</span>
                     </div>
-                    <div class="form-group">
-                        <label for="secondaryColor">次色调</label>
-                        <input type="color" id="secondaryColor" value="#cc0000">
+                    <div class="theme-option" data-theme="cyan">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #00cccc, #008888);"></div>
+                        <span>极光青色</span>
                     </div>
-                    <button class="btn-add" id="applyCustomColor">应用自定义颜色</button>
+                    <div class="theme-option" data-theme="pink">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #ff3399, #cc0066);"></div>
+                        <span>樱花粉色</span>
+                    </div>
+                    <div class="theme-option" data-theme="silver">
+                        <div class="theme-preview" style="background: linear-gradient(135deg, #aaaaaa, #666666);"></div>
+                        <span>暗夜银灰</span>
+                    </div>
                 </div>
 
                 <button class="btn-reset" id="resetTheme" style="margin-top: 20px;">恢复默认主题</button>
@@ -953,6 +953,45 @@
     </div>
 
     <!-- 密码输入对话框 -->
+    <div class="edit-overlay" id="editOverlay">
+        <div class="edit-dialog">
+            <h3 id="editDialogTitle">编辑记录</h3>
+            <div class="form-group">
+                <label for="editDialogName">车手姓名</label>
+                <input type="text" id="editDialogName">
+            </div>
+            <div class="form-group">
+                <label>圈速</label>
+                <div class="time-inputs">
+                    <div>
+                        <label for="editDialogMin">分钟</label>
+                        <input type="number" id="editDialogMin" min="0" max="59">
+                    </div>
+                    <div>
+                        <label for="editDialogSec">秒钟</label>
+                        <input type="number" id="editDialogSec" min="0" max="59">
+                    </div>
+                    <div>
+                        <label for="editDialogMs">毫秒</label>
+                        <input type="number" id="editDialogMs" min="0" max="999">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="editDialogCar">赛车型号</label>
+                <select id="editDialogCar"></select>
+            </div>
+            <div class="form-group">
+                <label for="editDialogDate">日期</label>
+                <input type="date" id="editDialogDate">
+            </div>
+            <div class="button-group">
+                <button class="btn-reset" id="editDialogCancel">取消</button>
+                <button class="btn-add" id="editDialogSave">保存</button>
+            </div>
+        </div>
+    </div>
+
     <div class="password-overlay" id="passwordOverlay">
         <div class="password-dialog">
             <h3>请输入管理员密码</h3>
@@ -967,35 +1006,42 @@
     </div>
 
     <script>
+        /* ========== 存储前缀（按文件路径隔离数据） ========== */
+        const STORAGE_PREFIX = location.pathname + '::';
+
+        function sGet(key) { return localStorage.getItem(STORAGE_PREFIX + key); }
+        function sSet(key, value) { localStorage.setItem(STORAGE_PREFIX + key, value); }
+        function sRemove(key) { localStorage.removeItem(STORAGE_PREFIX + key); }
+
         /* ========== 数据初始化 ========== */
-        let tracks = JSON.parse(localStorage.getItem('tracks')) || [
+        let tracks = JSON.parse(sGet('tracks')) || [
             { id: 'shanghai', name: '上海国际赛车场' },
             { id: 'suzuka', name: '铃鹿赛道' },
             { id: 'spa', name: '斯帕赛道' }
         ];
-        let currentTrackId = localStorage.getItem('currentTrackId') || (tracks.length > 0 ? tracks[0].id : null);
+        let currentTrackId = sGet('currentTrackId') || (tracks.length > 0 ? tracks[0].id : null);
 
         // 首次使用时保存默认赛道
-        if (!localStorage.getItem('tracks')) {
-            localStorage.setItem('tracks', JSON.stringify(tracks));
+        if (!sGet('tracks')) {
+            sSet('tracks', JSON.stringify(tracks));
         }
-        if (!localStorage.getItem('currentTrackId') && currentTrackId) {
-            localStorage.setItem('currentTrackId', currentTrackId);
+        if (!sGet('currentTrackId') && currentTrackId) {
+            sSet('currentTrackId', currentTrackId);
         }
 
         // 为了兼容旧数据，如果存在旧的lapRecords，将其迁移到第一个赛道
-        const oldRecords = JSON.parse(localStorage.getItem('lapRecords'));
+        const oldRecords = JSON.parse(sGet('lapRecords'));
         if (oldRecords && oldRecords.length > 0 && currentTrackId) {
             const trackRecordsKey = `lapRecords_${currentTrackId}`;
-            if (!localStorage.getItem(trackRecordsKey)) {
-                localStorage.setItem(trackRecordsKey, JSON.stringify(oldRecords));
+            if (!sGet(trackRecordsKey)) {
+                sSet(trackRecordsKey, JSON.stringify(oldRecords));
             }
-            localStorage.removeItem('lapRecords');
+            sRemove('lapRecords');
         }
 
         let records = [];
         let currentTimeFilter = 'all';
-        let carModels = JSON.parse(localStorage.getItem('carModels')) || [
+        let carModels = JSON.parse(sGet('carModels')) || [
             "法拉利 SF90", "梅赛德斯 W12", "红牛 RB16B",
             "迈凯伦 MCL35M", "阿尔派 A521", "阿斯顿马丁 AMR21"
         ];
@@ -1048,7 +1094,7 @@
             // 管理面板切换
             toggleManagementBtn.addEventListener('click', function() {
                 // 检查是否设置了管理员密码
-                const savedPassword = localStorage.getItem('adminPassword');
+                const savedPassword = sGet('adminPassword');
 
                 // 如果面板已打开，直接关闭
                 if (managementPanel.classList.contains('active')) {
@@ -1122,9 +1168,9 @@
 
                 // 添加到选定赛道的记录中
                 const trackRecordsKey = `lapRecords_${selectedTrackId}`;
-                let trackRecords = JSON.parse(localStorage.getItem(trackRecordsKey)) || [];
+                let trackRecords = JSON.parse(sGet(trackRecordsKey)) || [];
                 trackRecords.push(newRecord);
-                localStorage.setItem(trackRecordsKey, JSON.stringify(trackRecords));
+                sSet(trackRecordsKey, JSON.stringify(trackRecords));
 
                 // 如果添加的是当前赛道的记录，重新加载并刷新排行榜
                 if (selectedTrackId === currentTrackId) {
@@ -1186,7 +1232,7 @@
                 // 如果这是第一个赛道，设置为当前赛道
                 if (tracks.length === 1) {
                     currentTrackId = trackId;
-                    localStorage.setItem('currentTrackId', currentTrackId);
+                    sSet('currentTrackId', currentTrackId);
                     loadCurrentTrackRecords();
                     renderLeaderboard();
                     renderEditList();
@@ -1200,7 +1246,7 @@
             // 赛道选择器事件
             trackSelect.addEventListener('change', function() {
                 currentTrackId = this.value;
-                localStorage.setItem('currentTrackId', currentTrackId);
+                sSet('currentTrackId', currentTrackId);
                 loadCurrentTrackRecords();
                 renderLeaderboard();
                 renderEditList();
@@ -1213,11 +1259,11 @@
                     if (this.value === 'fullscreen') {
                         customWidthInput.disabled = true;
                         container.classList.remove('custom-width');
-                        localStorage.setItem('widthMode', 'fullscreen');
+                        sSet('widthMode', 'fullscreen');
                     } else {
                         customWidthInput.disabled = false;
                         applyCustomWidth();
-                        localStorage.setItem('widthMode', 'custom');
+                        sSet('widthMode', 'custom');
                     }
                 });
             });
@@ -1230,28 +1276,27 @@
             });
 
             customWidthInput.addEventListener('change', function() {
-                localStorage.setItem('customWidth', this.value);
+                sSet('customWidth', this.value);
             });
 
             // Logo更新按钮
             const updateLogoBtn = document.getElementById('updateLogo');
             const logoUrlInput = document.getElementById('logoUrl');
+            const logoTextInput = document.getElementById('logoText');
             updateLogoBtn.addEventListener('click', function() {
                 const url = logoUrlInput.value.trim();
-                if (url) {
-                    updateLogo(url);
-                    alert('Logo已更新！');
-                } else {
-                    alert('请输入有效的Logo地址');
-                }
+                const text = logoTextInput.value.trim();
+                updateLogo(url, text);
+                alert('Logo已更新！');
             });
 
             // 清除Logo按钮
             const clearLogoBtn = document.getElementById('clearLogo');
             clearLogoBtn.addEventListener('click', function() {
                 logoUrlInput.value = '';
-                updateLogo('');
-                alert('已清除Logo，恢复显示文字');
+                logoTextInput.value = '';
+                updateLogo('', '');
+                alert('已恢复默认Logo');
             });
 
             // 主题选择器
@@ -1263,17 +1308,6 @@
                     themeOptions.forEach(opt => opt.classList.remove('active'));
                     this.classList.add('active');
                 });
-            });
-
-            // 自定义颜色应用
-            const applyCustomColorBtn = document.getElementById('applyCustomColor');
-            const primaryColorInput = document.getElementById('primaryColor');
-            const secondaryColorInput = document.getElementById('secondaryColor');
-            applyCustomColorBtn.addEventListener('click', function() {
-                const primary = primaryColorInput.value;
-                const secondary = secondaryColorInput.value;
-                applyCustomColors(primary, secondary);
-                themeOptions.forEach(opt => opt.classList.remove('active'));
             });
 
             // 恢复默认主题
@@ -1293,7 +1327,7 @@
 
             // 更新密码状态显示
             function updatePasswordStatus() {
-                const hasPassword = localStorage.getItem('adminPassword');
+                const hasPassword = sGet('adminPassword');
                 if (passwordStatusSpan) {
                     passwordStatusSpan.textContent = hasPassword ? '已设置' : '未设置';
                 }
@@ -1310,7 +1344,7 @@
                 // 设置密码 - 弹出密码对话框确认
                 showPasswordDialog(function(confirmPassword) {
                     if (confirmPassword === password) {
-                        localStorage.setItem('adminPassword', password);
+                        sSet('adminPassword', password);
                         adminPasswordInput.value = '';
                         updatePasswordStatus();
                         alert('管理员密码已设置！');
@@ -1322,14 +1356,14 @@
 
             // 移除密码按钮
             removeAdminPasswordBtn.addEventListener('click', function() {
-                const hasPassword = localStorage.getItem('adminPassword');
+                const hasPassword = sGet('adminPassword');
                 if (!hasPassword) {
                     alert('当前未设置密码保护');
                     return;
                 }
 
                 if (confirm('确定要移除管理员密码保护吗？')) {
-                    localStorage.removeItem('adminPassword');
+                    sRemove('adminPassword');
                     adminPasswordInput.value = '';
                     updatePasswordStatus();
                     alert('已移除密码保护');
@@ -1383,14 +1417,14 @@
 
             updateTitleBtn.addEventListener('click', function() {
                 const title = customTitleInput.value.trim();
-                localStorage.setItem('leaderboardTitle', title);
+                sSet('leaderboardTitle', title);
                 updateLeaderboardTitle();
                 alert('标题已更新！');
             });
 
             clearTitleBtn.addEventListener('click', function() {
                 customTitleInput.value = '';
-                localStorage.removeItem('leaderboardTitle');
+                sRemove('leaderboardTitle');
                 updateLeaderboardTitle();
                 alert('已恢复默认标题');
             });
@@ -1445,8 +1479,8 @@
 
         // 加载宽度设置
         function loadWidthSettings() {
-            const savedMode = localStorage.getItem('widthMode') || 'fullscreen';
-            const savedWidth = localStorage.getItem('customWidth') || '1200';
+            const savedMode = sGet('widthMode') || 'fullscreen';
+            const savedWidth = sGet('customWidth') || '1200';
 
             customWidthInput.value = savedWidth;
 
@@ -1564,6 +1598,86 @@
                 btnBg: 'rgba(255, 153, 0, 0.2)',
                 btnHover: 'rgba(255, 153, 0, 0.4)',
                 btnColor: '#ffcc66'
+            },
+            gold: {
+                primary: '#ffd700',
+                secondary: '#b8960c',
+                bg: '#1a1500',
+                border: 'rgba(255, 215, 0, 0.3)',
+                borderLight: 'rgba(255, 215, 0, 0.1)',
+                glow: 'rgba(255, 215, 0, 0.5)',
+                scrollbar: 'rgba(255, 215, 0, 0.5)',
+                scrollbarHover: 'rgba(255, 215, 0, 0.8)',
+                headerBg: 'rgba(255, 215, 0, 0.2)',
+                hoverBg: 'rgba(255, 215, 0, 0.1)',
+                rank1Bg: 'rgba(255, 215, 0, 0.2)',
+                rank2Color: '#b8960c',
+                rank2Bg: 'rgba(184, 150, 12, 0.15)',
+                rank3Color: '#8a7009',
+                rank3Bg: 'rgba(138, 112, 9, 0.1)',
+                btnBg: 'rgba(255, 215, 0, 0.2)',
+                btnHover: 'rgba(255, 215, 0, 0.4)',
+                btnColor: '#ffe566'
+            },
+            cyan: {
+                primary: '#00cccc',
+                secondary: '#008888',
+                bg: '#001a1a',
+                border: 'rgba(0, 204, 204, 0.3)',
+                borderLight: 'rgba(0, 204, 204, 0.1)',
+                glow: 'rgba(0, 204, 204, 0.5)',
+                scrollbar: 'rgba(0, 204, 204, 0.5)',
+                scrollbarHover: 'rgba(0, 204, 204, 0.8)',
+                headerBg: 'rgba(0, 204, 204, 0.2)',
+                hoverBg: 'rgba(0, 204, 204, 0.1)',
+                rank1Bg: 'rgba(0, 204, 204, 0.2)',
+                rank2Color: '#008888',
+                rank2Bg: 'rgba(0, 136, 136, 0.15)',
+                rank3Color: '#006666',
+                rank3Bg: 'rgba(0, 102, 102, 0.1)',
+                btnBg: 'rgba(0, 204, 204, 0.2)',
+                btnHover: 'rgba(0, 204, 204, 0.4)',
+                btnColor: '#66ffff'
+            },
+            pink: {
+                primary: '#ff3399',
+                secondary: '#cc0066',
+                bg: '#1a000d',
+                border: 'rgba(255, 51, 153, 0.3)',
+                borderLight: 'rgba(255, 51, 153, 0.1)',
+                glow: 'rgba(255, 51, 153, 0.5)',
+                scrollbar: 'rgba(255, 51, 153, 0.5)',
+                scrollbarHover: 'rgba(255, 51, 153, 0.8)',
+                headerBg: 'rgba(255, 51, 153, 0.2)',
+                hoverBg: 'rgba(255, 51, 153, 0.1)',
+                rank1Bg: 'rgba(255, 51, 153, 0.2)',
+                rank2Color: '#cc0066',
+                rank2Bg: 'rgba(204, 0, 102, 0.15)',
+                rank3Color: '#990050',
+                rank3Bg: 'rgba(153, 0, 80, 0.1)',
+                btnBg: 'rgba(255, 51, 153, 0.2)',
+                btnHover: 'rgba(255, 51, 153, 0.4)',
+                btnColor: '#ff99cc'
+            },
+            silver: {
+                primary: '#aaaaaa',
+                secondary: '#666666',
+                bg: '#111111',
+                border: 'rgba(170, 170, 170, 0.3)',
+                borderLight: 'rgba(170, 170, 170, 0.1)',
+                glow: 'rgba(170, 170, 170, 0.4)',
+                scrollbar: 'rgba(170, 170, 170, 0.5)',
+                scrollbarHover: 'rgba(170, 170, 170, 0.8)',
+                headerBg: 'rgba(170, 170, 170, 0.15)',
+                hoverBg: 'rgba(170, 170, 170, 0.1)',
+                rank1Bg: 'rgba(170, 170, 170, 0.15)',
+                rank2Color: '#888888',
+                rank2Bg: 'rgba(136, 136, 136, 0.12)',
+                rank3Color: '#666666',
+                rank3Bg: 'rgba(102, 102, 102, 0.1)',
+                btnBg: 'rgba(170, 170, 170, 0.2)',
+                btnHover: 'rgba(170, 170, 170, 0.4)',
+                btnColor: '#cccccc'
             }
         };
 
@@ -1592,51 +1706,11 @@
             const theme = themes[themeName];
             if (!theme) return;
             setThemeVars(theme);
-            localStorage.setItem('theme', themeName);
-        }
-
-        // 根据主色调/次色调自动计算并应用自定义主题
-        function applyCustomColors(primary, secondary) {
-            const p = hexToRgb(primary);
-            const rgba = (r, g, b, a) => `rgba(${r}, ${g}, ${b}, ${a})`;
-            const rgb = (r, g, b) => `rgb(${r}, ${g}, ${b})`;
-            const scale = (ratio) => ({ r: Math.floor(p.r * ratio), g: Math.floor(p.g * ratio), b: Math.floor(p.b * ratio) });
-
-            const rank2 = scale(0.8);
-            const rank3 = scale(0.6);
-            const btnC = { r: Math.min(255, p.r + 40), g: Math.min(255, p.g + 40), b: Math.min(255, p.b + 40) };
-
-            setThemeVars({
-                primary, secondary,
-                bg: rgb(Math.floor(p.r * 0.1), Math.floor(p.g * 0.1), Math.floor(p.b * 0.1)),
-                border: rgba(p.r, p.g, p.b, 0.3), borderLight: rgba(p.r, p.g, p.b, 0.1),
-                glow: rgba(p.r, p.g, p.b, 0.5),
-                scrollbar: rgba(p.r, p.g, p.b, 0.5), scrollbarHover: rgba(p.r, p.g, p.b, 0.8),
-                headerBg: rgba(p.r, p.g, p.b, 0.2), hoverBg: rgba(p.r, p.g, p.b, 0.1),
-                rank1Bg: rgba(p.r, p.g, p.b, 0.2),
-                rank2Color: rgb(rank2.r, rank2.g, rank2.b), rank2Bg: rgba(rank2.r, rank2.g, rank2.b, 0.15),
-                rank3Color: rgb(rank3.r, rank3.g, rank3.b), rank3Bg: rgba(rank3.r, rank3.g, rank3.b, 0.1),
-                btnBg: rgba(p.r, p.g, p.b, 0.2), btnHover: rgba(p.r, p.g, p.b, 0.4),
-                btnColor: rgb(btnC.r, btnC.g, btnC.b)
-            });
-
-            localStorage.setItem('theme', 'custom');
-            localStorage.setItem('customPrimary', primary);
-            localStorage.setItem('customSecondary', secondary);
-        }
-
-        // 辅助函数：将hex颜色转换为rgb
-        function hexToRgb(hex) {
-            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return result ? {
-                r: parseInt(result[1], 16),
-                g: parseInt(result[2], 16),
-                b: parseInt(result[3], 16)
-            } : null;
+            sSet('theme', themeName);
         }
 
         // 更新Logo
-        function updateLogo(url) {
+        function updateLogo(url, text) {
             const logoImg = document.querySelector('.logoimg');
             const logoText = document.querySelector('.logo-text');
 
@@ -1644,36 +1718,34 @@
                 logoImg.src = url;
                 logoImg.style.display = 'block';
                 logoText.style.display = 'none';
-                localStorage.setItem('logoUrl', url);
+                sSet('logoUrl', url);
             } else {
                 logoImg.style.display = 'none';
                 logoText.style.display = 'block';
-                localStorage.removeItem('logoUrl');
+                if (text && text.trim() !== '') {
+                    logoText.textContent = text;
+                    sSet('logoText', text);
+                } else {
+                    logoText.textContent = 'JAKE RACING';
+                    sRemove('logoText');
+                }
+                sRemove('logoUrl');
             }
         }
 
         // 加载主题设置
         function loadThemeSettings() {
-            const savedTheme = localStorage.getItem('theme') || 'red';
-
-            if (savedTheme === 'custom') {
-                const customPrimary = localStorage.getItem('customPrimary') || '#ff0000';
-                const customSecondary = localStorage.getItem('customSecondary') || '#cc0000';
-                applyCustomColors(customPrimary, customSecondary);
-                document.getElementById('primaryColor').value = customPrimary;
-                document.getElementById('secondaryColor').value = customSecondary;
-            } else {
-                applyTheme(savedTheme);
-                const themeOptions = document.querySelectorAll('.theme-option');
-                themeOptions.forEach(opt => {
-                    if (opt.getAttribute('data-theme') === savedTheme) {
-                        opt.classList.add('active');
-                    }
-                });
-            }
+            const savedTheme = sGet('theme') || 'red';
+            applyTheme(themes[savedTheme] ? savedTheme : 'red');
+            const themeOptions = document.querySelectorAll('.theme-option');
+            themeOptions.forEach(opt => {
+                if (opt.getAttribute('data-theme') === savedTheme) {
+                    opt.classList.add('active');
+                }
+            });
 
             // 加载Logo设置
-            const savedLogoUrl = localStorage.getItem('logoUrl');
+            const savedLogoUrl = sGet('logoUrl');
             const logoImg = document.querySelector('.logoimg');
             const logoText = document.querySelector('.logo-text');
 
@@ -1685,6 +1757,11 @@
             } else {
                 logoImg.style.display = 'none';
                 logoText.style.display = 'block';
+                const savedLogoText = sGet('logoText');
+                if (savedLogoText) {
+                    logoText.textContent = savedLogoText;
+                    document.getElementById('logoText').value = savedLogoText;
+                }
             }
         }
 
@@ -1701,7 +1778,7 @@
             if (confirm(`确定要删除赛道"${track.name}"吗？该赛道的所有记录也将被删除！`)) {
                 // 删除该赛道的所有记录
                 const trackRecordsKey = `lapRecords_${track.id}`;
-                localStorage.removeItem(trackRecordsKey);
+                sRemove(trackRecordsKey);
 
                 // 从赛道列表中删除
                 tracks.splice(index, 1);
@@ -1709,7 +1786,7 @@
                 // 如果删除的是当前赛道，切换到第一个赛道
                 if (track.id === currentTrackId) {
                     currentTrackId = tracks[0].id;
-                    localStorage.setItem('currentTrackId', currentTrackId);
+                    sSet('currentTrackId', currentTrackId);
                     loadCurrentTrackRecords();
                     renderLeaderboard();
                     renderEditList();
@@ -1734,7 +1811,7 @@
         function deleteRecordByTrack(trackId, driverName, formattedTime, carModel) {
             if (confirm('确定要删除这条记录吗？')) {
                 const trackRecordsKey = `lapRecords_${trackId}`;
-                let trackRecords = JSON.parse(localStorage.getItem(trackRecordsKey)) || [];
+                let trackRecords = JSON.parse(sGet(trackRecordsKey)) || [];
 
                 // 找到并删除匹配的记录
                 trackRecords = trackRecords.filter(record => {
@@ -1743,7 +1820,7 @@
                              record.carModel === carModel);
                 });
 
-                localStorage.setItem(trackRecordsKey, JSON.stringify(trackRecords));
+                sSet(trackRecordsKey, JSON.stringify(trackRecords));
 
                 // 如果删除的是当前赛道的记录，重新加载当前赛道记录
                 if (trackId === currentTrackId) {
@@ -1759,7 +1836,7 @@
         // 根据赛道ID编辑特定记录（用于管理面板）
         function editRecordByTrack(trackId, recordIndex) {
             const trackRecordsKey = `lapRecords_${trackId}`;
-            const trackRecords = JSON.parse(localStorage.getItem(trackRecordsKey)) || [];
+            const trackRecords = JSON.parse(sGet(trackRecordsKey)) || [];
             const record = trackRecords[recordIndex];
 
             if (!record) {
@@ -1771,60 +1848,41 @@
             const trackName = tracks.find(t => t.id === trackId)?.name || trackId;
             const dateValue = record.date ? formatDate(record.date) : getTodayStr();
 
-            editList.innerHTML = `
-                <div class="edit-form" style="margin-bottom: 15px; border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));">
-                    <h3 style="grid-column: 1 / -1; color: var(--theme-primary, #ff0000);">编辑记录 - ${trackName}</h3>
-                    <div class="form-group">
-                        <label for="inlineEditName">车手姓名</label>
-                        <input type="text" id="inlineEditName" value="${escapeAttr(record.driverName)}">
-                    </div>
-                    <div class="form-group">
-                        <label>圈速</label>
-                        <div class="time-inputs">
-                            <div>
-                                <label for="inlineEditMin">分钟</label>
-                                <input type="number" id="inlineEditMin" min="0" max="59" value="${timeMatch[1]}">
-                            </div>
-                            <div>
-                                <label for="inlineEditSec">秒钟</label>
-                                <input type="number" id="inlineEditSec" min="0" max="59" value="${timeMatch[2]}">
-                            </div>
-                            <div>
-                                <label for="inlineEditMs">毫秒</label>
-                                <input type="number" id="inlineEditMs" min="0" max="999" value="${timeMatch[3]}">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="inlineEditCar">赛车型号</label>
-                        <select id="inlineEditCar">
-                            ${carModels.map(car =>
-                                `<option value="${car}" ${car === record.carModel ? 'selected' : ''}>${car}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="inlineEditDate">日期</label>
-                        <input type="date" id="inlineEditDate" value="${dateValue}">
-                    </div>
-                    <div class="button-group">
-                        <button class="btn-add" id="inlineEditSave">保存</button>
-                        <button class="btn-reset" id="inlineEditCancel">取消</button>
-                    </div>
-                </div>
-            `;
+            const overlay = document.getElementById('editOverlay');
+            document.getElementById('editDialogTitle').textContent = '编辑记录 - ' + trackName;
+            document.getElementById('editDialogName').value = record.driverName;
+            document.getElementById('editDialogMin').value = timeMatch[1];
+            document.getElementById('editDialogSec').value = timeMatch[2];
+            document.getElementById('editDialogMs').value = timeMatch[3];
+            document.getElementById('editDialogDate').value = dateValue;
 
-            document.getElementById('inlineEditSave').addEventListener('click', function() {
-                const driverName = document.getElementById('inlineEditName').value.trim();
-                const carModel = document.getElementById('inlineEditCar').value;
-                const editDate = document.getElementById('inlineEditDate').value;
+            const carSelect = document.getElementById('editDialogCar');
+            carSelect.innerHTML = carModels.map(car =>
+                `<option value="${car}" ${car === record.carModel ? 'selected' : ''}>${car}</option>`
+            ).join('');
+
+            overlay.classList.add('active');
+
+            const saveBtn = document.getElementById('editDialogSave');
+            const cancelBtn = document.getElementById('editDialogCancel');
+
+            function cleanup() {
+                overlay.classList.remove('active');
+                saveBtn.removeEventListener('click', onSave);
+                cancelBtn.removeEventListener('click', onCancel);
+            }
+
+            function onSave() {
+                const driverName = document.getElementById('editDialogName').value.trim();
+                const carModel = document.getElementById('editDialogCar').value;
+                const editDate = document.getElementById('editDialogDate').value;
 
                 if (!driverName) { alert('请输入车手姓名'); return; }
 
                 const lapTime = validateLapTime(
-                    parseInt(document.getElementById('inlineEditMin').value),
-                    parseInt(document.getElementById('inlineEditSec').value),
-                    parseInt(document.getElementById('inlineEditMs').value)
+                    parseInt(document.getElementById('editDialogMin').value),
+                    parseInt(document.getElementById('editDialogSec').value),
+                    parseInt(document.getElementById('editDialogMs').value)
                 );
                 if (!lapTime) { alert('请输入有效的时间值'); return; }
 
@@ -1834,7 +1892,7 @@
                     : (record.date || new Date().toISOString());
 
                 trackRecords[recordIndex] = { driverName, formattedTime, totalMilliseconds, carModel, date };
-                localStorage.setItem(trackRecordsKey, JSON.stringify(trackRecords));
+                sSet(trackRecordsKey, JSON.stringify(trackRecords));
 
                 if (trackId === currentTrackId) {
                     loadCurrentTrackRecords();
@@ -1842,11 +1900,15 @@
                 }
                 renderEditList();
                 updateFilterOptions();
-            });
+                cleanup();
+            }
 
-            document.getElementById('inlineEditCancel').addEventListener('click', function() {
-                renderEditList();
-            });
+            function onCancel() {
+                cleanup();
+            }
+
+            saveBtn.addEventListener('click', onSave);
+            cancelBtn.addEventListener('click', onCancel);
         }
 
         /* ========== 数据存取（localStorage） ========== */
@@ -1858,14 +1920,14 @@
                 return;
             }
             const trackRecordsKey = `lapRecords_${currentTrackId}`;
-            records = JSON.parse(localStorage.getItem(trackRecordsKey)) || [];
+            records = JSON.parse(sGet(trackRecordsKey)) || [];
         }
 
         // 保存记录到localStorage（按赛道分开存储）
         function saveRecords() {
             if (!currentTrackId) return;
             const trackRecordsKey = `lapRecords_${currentTrackId}`;
-            localStorage.setItem(trackRecordsKey, JSON.stringify(records));
+            sSet(trackRecordsKey, JSON.stringify(records));
         }
 
         // 加载所有赛道的记录（用于管理面板筛选）
@@ -1873,7 +1935,7 @@
             const allRecords = [];
             tracks.forEach(track => {
                 const trackRecordsKey = `lapRecords_${track.id}`;
-                const trackRecords = JSON.parse(localStorage.getItem(trackRecordsKey)) || [];
+                const trackRecords = JSON.parse(sGet(trackRecordsKey)) || [];
                 trackRecords.forEach(record => {
                     allRecords.push({
                         ...record,
@@ -1887,12 +1949,12 @@
 
         // 保存赛道列表到localStorage
         function saveTracks() {
-            localStorage.setItem('tracks', JSON.stringify(tracks));
+            sSet('tracks', JSON.stringify(tracks));
         }
 
         // 保存车型到localStorage
         function saveCarModels() {
-            localStorage.setItem('carModels', JSON.stringify(carModels));
+            sSet('carModels', JSON.stringify(carModels));
         }
 
         // 重置表单
@@ -1927,7 +1989,7 @@
 
         // 获取今天的日期字符串 (YYYY-MM-DD)
         function getTodayStr() {
-            return getTodayStr();
+            return new Date().toISOString().slice(0, 10);
         }
 
         // 格式化日期显示
@@ -1980,7 +2042,7 @@
         // 更新排行榜标题
         function updateLeaderboardTitle() {
             const titleEl = document.getElementById('leaderboardTitle');
-            const customTitle = localStorage.getItem('leaderboardTitle');
+            const customTitle = sGet('leaderboardTitle');
 
             if (customTitle) {
                 titleEl.textContent = customTitle;
@@ -1997,7 +2059,7 @@
 
         // 加载排行榜标题设置
         function loadLeaderboardTitle() {
-            const savedTitle = localStorage.getItem('leaderboardTitle');
+            const savedTitle = sGet('leaderboardTitle');
             if (savedTitle) {
                 const customTitleInput = document.getElementById('customTitle');
                 if (customTitleInput) customTitleInput.value = savedTitle;
@@ -2041,7 +2103,7 @@
                     <div class="leaderboard-item ${rankClass}">
                         <div class="rank">#${index + 1}</div>
                         <div class="driver-name">${record.driverName}</div>
-                        <div class="lap-time">${record.formattedTime}</div>
+                        <div class="lap-time"${index === 0 ? ' style="color: #aa44ff;"' : ''}>${record.formattedTime}</div>
                         <div class="car-model">${record.carModel}</div>
                         <div class="car-model">${formatDate(record.date)}</div>
                     </div>
@@ -2089,7 +2151,7 @@
                 filteredRecords.forEach((record, displayIndex) => {
                     // 找到该记录在对应赛道记录数组中的索引
                     const trackRecordsKey = `lapRecords_${record.trackId}`;
-                    const trackRecords = JSON.parse(localStorage.getItem(trackRecordsKey)) || [];
+                    const trackRecords = JSON.parse(sGet(trackRecordsKey)) || [];
                     const recordIndex = trackRecords.findIndex(r =>
                         r.driverName === record.driverName &&
                         r.formattedTime === record.formattedTime &&
