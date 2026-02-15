@@ -57,11 +57,6 @@
             text-shadow: 0 0 20px var(--theme-glow, rgba(255, 0, 0, 0.5));
         }
         
-        .subtitle {
-            color: #aaa;
-            font-size: 1.1rem;
-        }
-
         .track-selector {
             margin-top: 20px;
             display: flex;
@@ -146,9 +141,52 @@
             overflow: hidden;
         }
 
+        .leaderboard-title-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .leaderboard-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ddd;
+        }
+
+        .leaderboard-tabs {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .leaderboard-tab {
+            padding: 6px 14px;
+            background: none;
+            border: 1px solid var(--theme-border-light, rgba(255, 0, 0, 0.1));
+            border-radius: 20px;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .leaderboard-tab:hover {
+            color: #ddd;
+            border-color: var(--theme-border, rgba(255, 0, 0, 0.3));
+        }
+
+        .leaderboard-tab.active {
+            color: white;
+            background: var(--theme-btn-bg, rgba(255, 0, 0, 0.2));
+            border-color: var(--theme-primary, #ff0000);
+            text-shadow: 0 0 8px var(--theme-glow, rgba(255, 0, 0, 0.5));
+        }
+
         .leaderboard-header {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-template-columns: 0.5fr 1fr 1fr 1fr 1fr;
             padding: 15px 20px;
             background: var(--theme-header-bg, rgba(255, 0, 0, 0.2));
             border-radius: 8px;
@@ -166,14 +204,14 @@
 
         .leaderboard-item {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-template-columns: 0.5fr 1fr 1fr 1fr 1fr;
             padding: 15px 20px;
             margin-bottom: 10px;
             background: rgba(0, 0, 0, 0.4);
             border-radius: 8px;
             transition: all 0.3s ease;
-            border-left: 4px solid transparent;
             border: 1px solid var(--theme-border-light, rgba(255, 0, 0, 0.1));
+            border-left: 4px solid transparent;
         }
 
         .leaderboard-item:hover {
@@ -226,12 +264,6 @@
             align-items: center;
             color: #aaa;
             font-size: 0.9rem;
-        }
-        
-        .actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
         }
         
         .btn-edit, .btn-delete {
@@ -479,6 +511,43 @@
             flex-shrink: 0;
             padding: 10px 0;
         }
+
+        /* 密码对话框样式 */
+        .password-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .password-overlay.active {
+            display: flex;
+        }
+
+        .password-dialog {
+            background: #1a1a1a;
+            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
+            border-radius: 10px;
+            padding: 30px;
+            min-width: 320px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .password-dialog h3 {
+            margin-bottom: 15px;
+            color: var(--theme-primary, #ff0000);
+        }
+
+        .password-dialog .button-group {
+            margin-top: 15px;
+            justify-content: flex-end;
+        }
         
         /* 滚动条样式 */
         ::-webkit-scrollbar {
@@ -609,38 +678,6 @@
             --theme-btn-color: #ff6666;
         }
 
-        body {
-            background: linear-gradient(135deg, #000000 0%, var(--theme-bg, #1a0000) 100%);
-        }
-
-        h1 {
-            background: linear-gradient(90deg, var(--theme-primary, #ff0000), var(--theme-secondary, #cc0000));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 0 20px var(--theme-glow, rgba(255, 0, 0, 0.5));
-        }
-
-        .track-select {
-            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
-        }
-
-        .track-select:focus {
-            border-color: var(--theme-primary, #ff0000);
-            box-shadow: 0 0 10px var(--theme-glow, rgba(255, 0, 0, 0.3));
-        }
-
-        header {
-            border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--theme-scrollbar, rgba(255, 0, 0, 0.5));
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--theme-scrollbar-hover, rgba(255, 0, 0, 0.8));
-        }
     </style>
 </head>
 <body>
@@ -661,11 +698,22 @@
         
         <!-- 主排行榜 -->
         <div class="leaderboard">
+            <div class="leaderboard-title-bar">
+                <div class="leaderboard-title" id="leaderboardTitle">排行榜</div>
+                <div class="leaderboard-tabs">
+                    <button class="leaderboard-tab active" data-filter="all">总榜</button>
+                    <button class="leaderboard-tab" data-filter="day">日榜</button>
+                    <button class="leaderboard-tab" data-filter="week">周榜</button>
+                    <button class="leaderboard-tab" data-filter="month">月榜</button>
+                    <button class="leaderboard-tab" data-filter="year">年榜</button>
+                </div>
+            </div>
             <div class="leaderboard-header">
                 <div>排名</div>
                 <div>车手姓名</div>
                 <div>圈速</div>
                 <div>赛车型号</div>
+                <div>日期</div>
             </div>
             <div class="leaderboard-list" id="leaderboardList">
                 <!-- 排行榜内容将通过JavaScript动态生成 -->
@@ -724,6 +772,11 @@
                         <select id="carModel">
                             <!-- 车型选项将通过JavaScript动态生成 -->
                         </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="recordDate">记录日期</label>
+                        <input type="date" id="recordDate">
                     </div>
 
                     <div class="button-group">
@@ -795,6 +848,17 @@
             <!-- 外观设置面板 -->
             <div class="panel-content" id="appearancePanel">
                 <h2>外观设置</h2>
+
+                <!-- 排行榜标题设置 -->
+                <div class="form-group">
+                    <label for="customTitle">排行榜标题</label>
+                    <input type="text" id="customTitle" placeholder="留空则显示赛道名称">
+                    <small style="color: #999; display: block; margin-top: 5px;">自定义排行榜区域的标题文字，留空则自动显示当前赛道名称</small>
+                </div>
+                <div class="button-group" style="margin-bottom: 20px;">
+                    <button class="btn-add" id="updateTitle">更新标题</button>
+                    <button class="btn-reset" id="clearTitle">恢复默认</button>
+                </div>
 
                 <!-- Logo设置 -->
                 <div class="form-group">
@@ -888,8 +952,22 @@
         </footer>
     </div>
 
+    <!-- 密码输入对话框 -->
+    <div class="password-overlay" id="passwordOverlay">
+        <div class="password-dialog">
+            <h3>请输入管理员密码</h3>
+            <div class="form-group">
+                <input type="password" id="passwordInput" placeholder="请输入密码">
+            </div>
+            <div class="button-group">
+                <button class="btn-reset" id="passwordCancel">取消</button>
+                <button class="btn-add" id="passwordConfirm">确认</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // 初始化数据
+        /* ========== 数据初始化 ========== */
         let tracks = JSON.parse(localStorage.getItem('tracks')) || [
             { id: 'shanghai', name: '上海国际赛车场' },
             { id: 'suzuka', name: '铃鹿赛道' },
@@ -916,12 +994,13 @@
         }
 
         let records = [];
+        let currentTimeFilter = 'all';
         let carModels = JSON.parse(localStorage.getItem('carModels')) || [
             "法拉利 SF90", "梅赛德斯 W12", "红牛 RB16B",
             "迈凯伦 MCL35M", "阿尔派 A521", "阿斯顿马丁 AMR21"
         ];
 
-        // DOM元素
+        /* ========== DOM 元素缓存 ========== */
         const container = document.querySelector('.container');
         const leaderboardList = document.getElementById('leaderboardList');
         const editList = document.getElementById('editList');
@@ -947,7 +1026,7 @@
         const widthModeRadios = document.querySelectorAll('input[name="widthMode"]');
         const customWidthInput = document.getElementById('customWidth');
 
-        // 页面加载时初始化
+        /* ========== 页面初始化 ========== */
         document.addEventListener('DOMContentLoaded', function() {
             loadCurrentTrackRecords();
             renderTracks();
@@ -957,10 +1036,14 @@
             updateFilterOptions();
             loadWidthSettings();
             loadThemeSettings();
+            loadLeaderboardTitle();
             setupEventListeners();
+            // 初始化日期输入为今天
+            const recordDateInput = document.getElementById('recordDate');
+            if (recordDateInput) recordDateInput.value = getTodayStr();
         });
 
-        // 设置事件监听器
+        /* ========== 事件监听器 ========== */
         function setupEventListeners() {
             // 管理面板切换
             toggleManagementBtn.addEventListener('click', function() {
@@ -976,14 +1059,19 @@
 
                 // 如果设置了密码，需要验证
                 if (savedPassword) {
-                    const inputPassword = prompt('请输入管理员密码:');
-                    if (inputPassword !== savedPassword) {
-                        alert('密码错误！');
-                        return;
-                    }
+                    showPasswordDialog(function(inputPassword) {
+                        if (inputPassword !== savedPassword) {
+                            alert('密码错误！');
+                            return;
+                        }
+                        // 验证通过，打开面板
+                        managementPanel.classList.add('active');
+                        toggleManagementBtn.textContent = '隐藏管理';
+                    });
+                    return;
                 }
 
-                // 验证通过或无密码保护，打开面板
+                // 无密码保护，直接打开面板
                 managementPanel.classList.add('active');
                 this.textContent = '隐藏管理';
             });
@@ -1006,37 +1094,30 @@
             // 添加记录按钮事件
             addRecordBtn.addEventListener('click', function() {
                 const driverName = driverNameInput.value.trim();
-                const minutes = parseInt(minutesInput.value);
-                const seconds = parseInt(secondsInput.value);
-                const milliseconds = parseInt(millisecondsInput.value);
                 const carModel = carModelSelect.value;
                 const selectedTrackId = recordTrackSelect.value;
 
-                // 验证输入
-                if (!driverName) {
-                    alert('请输入车手姓名');
-                    return;
-                }
+                if (!driverName) { alert('请输入车手姓名'); return; }
 
-                if (isNaN(minutes) || isNaN(seconds) || isNaN(milliseconds) ||
-                    minutes < 0 || seconds < 0 || milliseconds < 0 ||
-                    seconds > 59 || milliseconds > 999) {
-                    alert('请输入有效的时间值');
-                    return;
-                }
+                const lapTime = validateLapTime(
+                    parseInt(minutesInput.value),
+                    parseInt(secondsInput.value),
+                    parseInt(millisecondsInput.value)
+                );
+                if (!lapTime) { alert('请输入有效的时间值'); return; }
 
-                // 格式化时间
-                const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
+                // 获取日期（未选择则用今天）
+                const dateInput = document.getElementById('recordDate');
+                const recordDate = dateInput.value
+                    ? new Date(dateInput.value + 'T00:00:00').toISOString()
+                    : new Date().toISOString();
 
-                // 计算总毫秒数用于排序
-                const totalMilliseconds = minutes * 60000 + seconds * 1000 + milliseconds;
-
-                // 创建新记录
                 const newRecord = {
                     driverName,
-                    formattedTime,
-                    totalMilliseconds,
-                    carModel
+                    formattedTime: lapTime.formattedTime,
+                    totalMilliseconds: lapTime.totalMilliseconds,
+                    carModel,
+                    date: recordDate
                 };
 
                 // 添加到选定赛道的记录中
@@ -1226,16 +1307,17 @@
                     return;
                 }
 
-                // 设置密码
-                const confirmPassword = prompt('请再次输入密码以确认:');
-                if (confirmPassword === password) {
-                    localStorage.setItem('adminPassword', password);
-                    adminPasswordInput.value = '';
-                    updatePasswordStatus();
-                    alert('管理员密码已设置！');
-                } else {
-                    alert('两次输入的密码不一致，请重试');
-                }
+                // 设置密码 - 弹出密码对话框确认
+                showPasswordDialog(function(confirmPassword) {
+                    if (confirmPassword === password) {
+                        localStorage.setItem('adminPassword', password);
+                        adminPasswordInput.value = '';
+                        updatePasswordStatus();
+                        alert('管理员密码已设置！');
+                    } else {
+                        alert('两次输入的密码不一致，请重试');
+                    }
+                });
             });
 
             // 移除密码按钮
@@ -1281,6 +1363,77 @@
                     renderEditList();
                 });
             }
+
+            // 时间筛选标签
+            const leaderboardTabs = document.querySelectorAll('.leaderboard-tab');
+            leaderboardTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    currentTimeFilter = this.getAttribute('data-filter');
+                    leaderboardTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    updateLeaderboardTitle();
+                    renderLeaderboard();
+                });
+            });
+
+            // 排行榜标题设置
+            const updateTitleBtn = document.getElementById('updateTitle');
+            const clearTitleBtn = document.getElementById('clearTitle');
+            const customTitleInput = document.getElementById('customTitle');
+
+            updateTitleBtn.addEventListener('click', function() {
+                const title = customTitleInput.value.trim();
+                localStorage.setItem('leaderboardTitle', title);
+                updateLeaderboardTitle();
+                alert('标题已更新！');
+            });
+
+            clearTitleBtn.addEventListener('click', function() {
+                customTitleInput.value = '';
+                localStorage.removeItem('leaderboardTitle');
+                updateLeaderboardTitle();
+                alert('已恢复默认标题');
+            });
+        }
+
+        /* ========== 对话框与 UI 交互 ========== */
+
+        // 弹出密码输入对话框，通过回调返回用户输入
+        function showPasswordDialog(callback) {
+            const overlay = document.getElementById('passwordOverlay');
+            const input = document.getElementById('passwordInput');
+            const confirmBtn = document.getElementById('passwordConfirm');
+            const cancelBtn = document.getElementById('passwordCancel');
+
+            input.value = '';
+            overlay.classList.add('active');
+            input.focus();
+
+            function cleanup() {
+                overlay.classList.remove('active');
+                confirmBtn.removeEventListener('click', onConfirm);
+                cancelBtn.removeEventListener('click', onCancel);
+                input.removeEventListener('keydown', onKeydown);
+            }
+
+            function onConfirm() {
+                const value = input.value;
+                cleanup();
+                callback(value);
+            }
+
+            function onCancel() {
+                cleanup();
+            }
+
+            function onKeydown(e) {
+                if (e.key === 'Enter') onConfirm();
+                if (e.key === 'Escape') onCancel();
+            }
+
+            confirmBtn.addEventListener('click', onConfirm);
+            cancelBtn.addEventListener('click', onCancel);
+            input.addEventListener('keydown', onKeydown);
         }
 
         // 应用自定义宽度
@@ -1308,7 +1461,9 @@
             }
         }
 
-        // 主题颜色配置
+        /* ========== 主题系统 ========== */
+
+        // 预设主题配置（每个主题通过主色调自动生成衍生颜色）
         const themes = {
             red: {
                 primary: '#ff0000',
@@ -1412,77 +1567,58 @@
             }
         };
 
-        // 应用主题
+        // 主题属性名到 CSS 变量名的映射
+        const themeVarMap = {
+            primary: '--theme-primary', secondary: '--theme-secondary', bg: '--theme-bg',
+            border: '--theme-border', borderLight: '--theme-border-light', glow: '--theme-glow',
+            scrollbar: '--theme-scrollbar', scrollbarHover: '--theme-scrollbar-hover',
+            headerBg: '--theme-header-bg', hoverBg: '--theme-hover-bg',
+            rank1Bg: '--theme-rank1-bg', rank2Color: '--theme-rank2-color', rank2Bg: '--theme-rank2-bg',
+            rank3Color: '--theme-rank3-color', rank3Bg: '--theme-rank3-bg',
+            btnBg: '--theme-btn-bg', btnHover: '--theme-btn-hover', btnColor: '--theme-btn-color'
+        };
+
+        // 批量设置 CSS 变量
+        function setThemeVars(vars) {
+            const root = document.documentElement;
+            for (const [key, value] of Object.entries(vars)) {
+                const cssVar = themeVarMap[key];
+                if (cssVar) root.style.setProperty(cssVar, value);
+            }
+        }
+
+        // 将预设主题的颜色变量应用到 :root
         function applyTheme(themeName) {
             const theme = themes[themeName];
             if (!theme) return;
-
-            const root = document.documentElement;
-            root.style.setProperty('--theme-primary', theme.primary);
-            root.style.setProperty('--theme-secondary', theme.secondary);
-            root.style.setProperty('--theme-bg', theme.bg);
-            root.style.setProperty('--theme-border', theme.border);
-            root.style.setProperty('--theme-border-light', theme.borderLight);
-            root.style.setProperty('--theme-glow', theme.glow);
-            root.style.setProperty('--theme-scrollbar', theme.scrollbar);
-            root.style.setProperty('--theme-scrollbar-hover', theme.scrollbarHover);
-            root.style.setProperty('--theme-header-bg', theme.headerBg);
-            root.style.setProperty('--theme-hover-bg', theme.hoverBg);
-            root.style.setProperty('--theme-rank1-bg', theme.rank1Bg);
-            root.style.setProperty('--theme-rank2-color', theme.rank2Color);
-            root.style.setProperty('--theme-rank2-bg', theme.rank2Bg);
-            root.style.setProperty('--theme-rank3-color', theme.rank3Color);
-            root.style.setProperty('--theme-rank3-bg', theme.rank3Bg);
-            root.style.setProperty('--theme-btn-bg', theme.btnBg);
-            root.style.setProperty('--theme-btn-hover', theme.btnHover);
-            root.style.setProperty('--theme-btn-color', theme.btnColor);
-
+            setThemeVars(theme);
             localStorage.setItem('theme', themeName);
         }
 
-        // 应用自定义颜色
+        // 根据主色调/次色调自动计算并应用自定义主题
         function applyCustomColors(primary, secondary) {
-            const root = document.documentElement;
-            const primaryRgb = hexToRgb(primary);
-            const secondaryRgb = hexToRgb(secondary);
+            const p = hexToRgb(primary);
+            const rgba = (r, g, b, a) => `rgba(${r}, ${g}, ${b}, ${a})`;
+            const rgb = (r, g, b) => `rgb(${r}, ${g}, ${b})`;
+            const scale = (ratio) => ({ r: Math.floor(p.r * ratio), g: Math.floor(p.g * ratio), b: Math.floor(p.b * ratio) });
 
-            const bgColor = `rgb(${Math.floor(primaryRgb.r * 0.1)}, ${Math.floor(primaryRgb.g * 0.1)}, ${Math.floor(primaryRgb.b * 0.1)})`;
+            const rank2 = scale(0.8);
+            const rank3 = scale(0.6);
+            const btnC = { r: Math.min(255, p.r + 40), g: Math.min(255, p.g + 40), b: Math.min(255, p.b + 40) };
 
-            // 计算衍生颜色
-            const rank2Rgb = {
-                r: Math.floor(primaryRgb.r * 0.8),
-                g: Math.floor(primaryRgb.g * 0.8),
-                b: Math.floor(primaryRgb.b * 0.8)
-            };
-            const rank3Rgb = {
-                r: Math.floor(primaryRgb.r * 0.6),
-                g: Math.floor(primaryRgb.g * 0.6),
-                b: Math.floor(primaryRgb.b * 0.6)
-            };
-            const btnColorRgb = {
-                r: Math.min(255, primaryRgb.r + 40),
-                g: Math.min(255, primaryRgb.g + 40),
-                b: Math.min(255, primaryRgb.b + 40)
-            };
-
-            root.style.setProperty('--theme-primary', primary);
-            root.style.setProperty('--theme-secondary', secondary);
-            root.style.setProperty('--theme-bg', bgColor);
-            root.style.setProperty('--theme-border', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.3)`);
-            root.style.setProperty('--theme-border-light', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.1)`);
-            root.style.setProperty('--theme-glow', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.5)`);
-            root.style.setProperty('--theme-scrollbar', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.5)`);
-            root.style.setProperty('--theme-scrollbar-hover', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.8)`);
-            root.style.setProperty('--theme-header-bg', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.2)`);
-            root.style.setProperty('--theme-hover-bg', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.1)`);
-            root.style.setProperty('--theme-rank1-bg', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.2)`);
-            root.style.setProperty('--theme-rank2-color', `rgb(${rank2Rgb.r}, ${rank2Rgb.g}, ${rank2Rgb.b})`);
-            root.style.setProperty('--theme-rank2-bg', `rgba(${rank2Rgb.r}, ${rank2Rgb.g}, ${rank2Rgb.b}, 0.15)`);
-            root.style.setProperty('--theme-rank3-color', `rgb(${rank3Rgb.r}, ${rank3Rgb.g}, ${rank3Rgb.b})`);
-            root.style.setProperty('--theme-rank3-bg', `rgba(${rank3Rgb.r}, ${rank3Rgb.g}, ${rank3Rgb.b}, 0.1)`);
-            root.style.setProperty('--theme-btn-bg', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.2)`);
-            root.style.setProperty('--theme-btn-hover', `rgba(${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}, 0.4)`);
-            root.style.setProperty('--theme-btn-color', `rgb(${btnColorRgb.r}, ${btnColorRgb.g}, ${btnColorRgb.b})`);
+            setThemeVars({
+                primary, secondary,
+                bg: rgb(Math.floor(p.r * 0.1), Math.floor(p.g * 0.1), Math.floor(p.b * 0.1)),
+                border: rgba(p.r, p.g, p.b, 0.3), borderLight: rgba(p.r, p.g, p.b, 0.1),
+                glow: rgba(p.r, p.g, p.b, 0.5),
+                scrollbar: rgba(p.r, p.g, p.b, 0.5), scrollbarHover: rgba(p.r, p.g, p.b, 0.8),
+                headerBg: rgba(p.r, p.g, p.b, 0.2), hoverBg: rgba(p.r, p.g, p.b, 0.1),
+                rank1Bg: rgba(p.r, p.g, p.b, 0.2),
+                rank2Color: rgb(rank2.r, rank2.g, rank2.b), rank2Bg: rgba(rank2.r, rank2.g, rank2.b, 0.15),
+                rank3Color: rgb(rank3.r, rank3.g, rank3.b), rank3Bg: rgba(rank3.r, rank3.g, rank3.b, 0.1),
+                btnBg: rgba(p.r, p.g, p.b, 0.2), btnHover: rgba(p.r, p.g, p.b, 0.4),
+                btnColor: rgb(btnC.r, btnC.g, btnC.b)
+            });
 
             localStorage.setItem('theme', 'custom');
             localStorage.setItem('customPrimary', primary);
@@ -1552,116 +1688,9 @@
             }
         }
 
-        // 编辑记录
-        function editRecord(index) {
-            const record = records[index];
-            
-            // 渲染编辑表单
-            renderEditForm(index);
-        }
+        /* ========== 数据操作（增删改） ========== */
 
-        // 渲染编辑表单
-        function renderEditForm(index) {
-            const record = records[index];
-            
-            const editFormHTML = `
-                <div class="edit-form">
-                    <div class="form-group">
-                        <label for="editDriverName">车手姓名</label>
-                        <input type="text" id="editDriverName" value="${record.driverName}">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>圈速</label>
-                        <div class="time-inputs">
-                            <div>
-                                <label for="editMinutes">分钟</label>
-                                <input type="number" id="editMinutes" min="0" max="59" value="${record.formattedTime.split(':')[0]}">
-                            </div>
-                            <div>
-                                <label for="editSeconds">秒钟</label>
-                                <input type="number" id="editSeconds" min="0" max="59" value="${record.formattedTime.split(':')[1]}">
-                            </div>
-                            <div>
-                                <label for="editMilliseconds">毫秒</label>
-                                <input type="number" id="editMilliseconds" min="0" max="999" value="${record.formattedTime.split(':')[2]}">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editCarModel">赛车型号</label>
-                        <select id="editCarModel">
-                            ${carModels.map(car => 
-                                `<option value="${car}" ${car === record.carModel ? 'selected' : ''}>${car}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button class="btn-add" onclick="updateRecord(${index})">更新记录</button>
-                        <button class="btn-reset" onclick="renderEditList()">取消</button>
-                    </div>
-                </div>
-            `;
-            
-            editList.innerHTML = editFormHTML;
-        }
-
-        // 更新记录
-        function updateRecord(index) {
-            const driverName = document.getElementById('editDriverName').value.trim();
-            const minutes = parseInt(document.getElementById('editMinutes').value);
-            const seconds = parseInt(document.getElementById('editSeconds').value);
-            const milliseconds = parseInt(document.getElementById('editMilliseconds').value);
-            const carModel = document.getElementById('editCarModel').value;
-
-            // 验证输入
-            if (!driverName) {
-                alert('请输入车手姓名');
-                return;
-            }
-
-            if (isNaN(minutes) || isNaN(seconds) || isNaN(milliseconds) ||
-                minutes < 0 || seconds < 0 || milliseconds < 0 ||
-                seconds > 59 || milliseconds > 999) {
-                alert('请输入有效的时间值');
-                return;
-            }
-
-            // 格式化时间
-            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
-            
-            // 计算总毫秒数用于排序
-            const totalMilliseconds = minutes * 60000 + seconds * 1000 + milliseconds;
-
-            // 更新记录
-            records[index] = {
-                driverName,
-                formattedTime,
-                totalMilliseconds,
-                carModel
-            };
-
-            // 保存到localStorage并重新渲染
-            saveRecords();
-            renderLeaderboard();
-            renderEditList();
-            updateFilterOptions();
-        }
-
-        // 删除记录
-        function deleteRecord(index) {
-            if (confirm('确定要删除这条记录吗？')) {
-                records.splice(index, 1);
-                saveRecords();
-                renderLeaderboard();
-                renderEditList();
-                updateFilterOptions();
-            }
-        }
-
-        // 删除赛道
+        // 删除赛道及其所有记录
         function deleteTrack(index) {
             if (tracks.length <= 1) {
                 alert('至少需要保留一个赛道');
@@ -1738,52 +1767,91 @@
                 return;
             }
 
-            // 提示用户输入新值
-            const newDriverName = prompt('车手姓名:', record.driverName);
-            if (!newDriverName) return;
-
             const timeMatch = record.formattedTime.match(/(\d+):(\d+):(\d+)/);
-            const newMinutes = prompt('分钟:', timeMatch[1]);
-            const newSeconds = prompt('秒:', timeMatch[2]);
-            const newMilliseconds = prompt('毫秒:', timeMatch[3]);
+            const trackName = tracks.find(t => t.id === trackId)?.name || trackId;
+            const dateValue = record.date ? formatDate(record.date) : getTodayStr();
 
-            if (!newMinutes || !newSeconds || !newMilliseconds) return;
+            editList.innerHTML = `
+                <div class="edit-form" style="margin-bottom: 15px; border: 1px solid var(--theme-border, rgba(255, 0, 0, 0.3));">
+                    <h3 style="grid-column: 1 / -1; color: var(--theme-primary, #ff0000);">编辑记录 - ${trackName}</h3>
+                    <div class="form-group">
+                        <label for="inlineEditName">车手姓名</label>
+                        <input type="text" id="inlineEditName" value="${escapeAttr(record.driverName)}">
+                    </div>
+                    <div class="form-group">
+                        <label>圈速</label>
+                        <div class="time-inputs">
+                            <div>
+                                <label for="inlineEditMin">分钟</label>
+                                <input type="number" id="inlineEditMin" min="0" max="59" value="${timeMatch[1]}">
+                            </div>
+                            <div>
+                                <label for="inlineEditSec">秒钟</label>
+                                <input type="number" id="inlineEditSec" min="0" max="59" value="${timeMatch[2]}">
+                            </div>
+                            <div>
+                                <label for="inlineEditMs">毫秒</label>
+                                <input type="number" id="inlineEditMs" min="0" max="999" value="${timeMatch[3]}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inlineEditCar">赛车型号</label>
+                        <select id="inlineEditCar">
+                            ${carModels.map(car =>
+                                `<option value="${car}" ${car === record.carModel ? 'selected' : ''}>${car}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="inlineEditDate">日期</label>
+                        <input type="date" id="inlineEditDate" value="${dateValue}">
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-add" id="inlineEditSave">保存</button>
+                        <button class="btn-reset" id="inlineEditCancel">取消</button>
+                    </div>
+                </div>
+            `;
 
-            const minutes = parseInt(newMinutes);
-            const seconds = parseInt(newSeconds);
-            const milliseconds = parseInt(newMilliseconds);
+            document.getElementById('inlineEditSave').addEventListener('click', function() {
+                const driverName = document.getElementById('inlineEditName').value.trim();
+                const carModel = document.getElementById('inlineEditCar').value;
+                const editDate = document.getElementById('inlineEditDate').value;
 
-            if (isNaN(minutes) || isNaN(seconds) || isNaN(milliseconds) ||
-                minutes < 0 || seconds < 0 || milliseconds < 0 ||
-                seconds > 59 || milliseconds > 999) {
-                alert('请输入有效的时间值');
-                return;
-            }
+                if (!driverName) { alert('请输入车手姓名'); return; }
 
-            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
-            const totalMilliseconds = minutes * 60000 + seconds * 1000 + milliseconds;
+                const lapTime = validateLapTime(
+                    parseInt(document.getElementById('inlineEditMin').value),
+                    parseInt(document.getElementById('inlineEditSec').value),
+                    parseInt(document.getElementById('inlineEditMs').value)
+                );
+                if (!lapTime) { alert('请输入有效的时间值'); return; }
 
-            // 更新记录
-            trackRecords[recordIndex] = {
-                driverName: newDriverName,
-                formattedTime,
-                totalMilliseconds,
-                carModel: record.carModel
-            };
+                const { formattedTime, totalMilliseconds } = lapTime;
+                const date = editDate
+                    ? new Date(editDate + 'T00:00:00').toISOString()
+                    : (record.date || new Date().toISOString());
 
-            localStorage.setItem(trackRecordsKey, JSON.stringify(trackRecords));
+                trackRecords[recordIndex] = { driverName, formattedTime, totalMilliseconds, carModel, date };
+                localStorage.setItem(trackRecordsKey, JSON.stringify(trackRecords));
 
-            // 如果编辑的是当前赛道的记录，重新加载当前赛道记录
-            if (trackId === currentTrackId) {
-                loadCurrentTrackRecords();
-                renderLeaderboard();
-            }
+                if (trackId === currentTrackId) {
+                    loadCurrentTrackRecords();
+                    renderLeaderboard();
+                }
+                renderEditList();
+                updateFilterOptions();
+            });
 
-            renderEditList();
-            updateFilterOptions();
+            document.getElementById('inlineEditCancel').addEventListener('click', function() {
+                renderEditList();
+            });
         }
 
-        // 加载当前赛道的记录
+        /* ========== 数据存取（localStorage） ========== */
+
+        // 从 localStorage 加载当前赛道的记录
         function loadCurrentTrackRecords() {
             if (!currentTrackId) {
                 records = [];
@@ -1834,41 +1902,152 @@
             secondsInput.value = '33';
             millisecondsInput.value = '999';
             carModelSelect.selectedIndex = 0;
+            const recordDateInput = document.getElementById('recordDate');
+            if (recordDateInput) recordDateInput.value = getTodayStr();
         }
 
-        // 渲染排行榜
+        /* ========== 工具函数 ========== */
+
+        // 转义 HTML 属性中的特殊字符，防止 XSS 和引号破坏
+        function escapeAttr(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/'/g, '&#39;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // 验证圈速输入，返回 null 表示无效
+        function validateLapTime(minutes, seconds, milliseconds) {
+            if (isNaN(minutes) || isNaN(seconds) || isNaN(milliseconds) ||
+                minutes < 0 || seconds < 0 || milliseconds < 0 ||
+                seconds > 59 || milliseconds > 999) {
+                return null;
+            }
+            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
+            const totalMilliseconds = minutes * 60000 + seconds * 1000 + milliseconds;
+            return { formattedTime, totalMilliseconds };
+        }
+
+        // 获取今天的日期字符串 (YYYY-MM-DD)
+        function getTodayStr() {
+            return getTodayStr();
+        }
+
+        // 格式化日期显示
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '-';
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        // 获取时间筛选的起始日期
+        function getFilterStartDate(filter) {
+            const now = new Date();
+            switch (filter) {
+                case 'day': {
+                    const today = new Date(now);
+                    today.setHours(0, 0, 0, 0);
+                    return today;
+                }
+                case 'week': {
+                    const day = now.getDay();
+                    const diff = day === 0 ? 6 : day - 1; // 周一为起点
+                    const monday = new Date(now);
+                    monday.setDate(now.getDate() - diff);
+                    monday.setHours(0, 0, 0, 0);
+                    return monday;
+                }
+                case 'month': {
+                    return new Date(now.getFullYear(), now.getMonth(), 1);
+                }
+                case 'year': {
+                    return new Date(now.getFullYear(), 0, 1);
+                }
+                default:
+                    return null;
+            }
+        }
+
+        // 根据时间筛选过滤记录
+        function filterRecordsByTime(recordsList) {
+            if (currentTimeFilter === 'all') return recordsList;
+            const startDate = getFilterStartDate(currentTimeFilter);
+            if (!startDate) return recordsList;
+            return recordsList.filter(record => {
+                if (!record.date) return true; // 旧记录无日期，始终显示
+                return new Date(record.date) >= startDate;
+            });
+        }
+
+        // 更新排行榜标题
+        function updateLeaderboardTitle() {
+            const titleEl = document.getElementById('leaderboardTitle');
+            const customTitle = localStorage.getItem('leaderboardTitle');
+
+            if (customTitle) {
+                titleEl.textContent = customTitle;
+                return;
+            }
+
+            // 默认标题：赛道名 + 筛选维度
+            const currentTrack = tracks.find(t => t.id === currentTrackId);
+            const trackName = currentTrack ? currentTrack.name : '排行榜';
+            const filterNames = { all: '总榜', day: '日榜', week: '周榜', month: '月榜', year: '年榜' };
+            const filterName = filterNames[currentTimeFilter] || '总榜';
+            titleEl.textContent = `${trackName} · ${filterName}`;
+        }
+
+        // 加载排行榜标题设置
+        function loadLeaderboardTitle() {
+            const savedTitle = localStorage.getItem('leaderboardTitle');
+            if (savedTitle) {
+                const customTitleInput = document.getElementById('customTitle');
+                if (customTitleInput) customTitleInput.value = savedTitle;
+            }
+            updateLeaderboardTitle();
+        }
+
+        /* ========== 页面渲染 ========== */
+
+        // 渲染主排行榜（支持时间筛选）
         function renderLeaderboard() {
             // 按时间排序（时间越短排名越高）
             records.sort((a, b) => a.totalMilliseconds - b.totalMilliseconds);
-            
-            if (records.length === 0) {
+
+            // 根据时间筛选
+            const filtered = filterRecordsByTime(records);
+
+            updateLeaderboardTitle();
+
+            if (filtered.length === 0) {
+                const filterNames = { all: '', day: '今日', week: '本周', month: '本月', year: '今年' };
+                const hint = filterNames[currentTimeFilter];
                 leaderboardList.innerHTML = `
                     <div class="empty-state">
                         <i>🏎️</i>
-                        <p>暂无圈速记录</p>
-                        <p>点击下方"管理数据"添加记录</p>
+                        <p>暂无${hint}圈速记录</p>
+                        <p>${currentTimeFilter === 'all' ? '点击下方"管理数据"添加记录' : '试试切换到其他时间范围'}</p>
                     </div>
                 `;
                 return;
             }
-            
+
             let leaderboardHTML = '';
-            
-            records.forEach((record, index) => {
-                const rankClass = index === 0 ? 'rank-1' : 
-                                 index === 1 ? 'rank-2' : 
+
+            filtered.forEach((record, index) => {
+                const rankClass = index === 0 ? 'rank-1' :
+                                 index === 1 ? 'rank-2' :
                                  index === 2 ? 'rank-3' : '';
-                
+
                 leaderboardHTML += `
                     <div class="leaderboard-item ${rankClass}">
                         <div class="rank">#${index + 1}</div>
                         <div class="driver-name">${record.driverName}</div>
                         <div class="lap-time">${record.formattedTime}</div>
                         <div class="car-model">${record.carModel}</div>
+                        <div class="car-model">${formatDate(record.date)}</div>
                     </div>
                 `;
             });
-            
+
             leaderboardList.innerHTML = leaderboardHTML;
         }
 
@@ -1923,11 +2102,12 @@
                                 <strong>${record.driverName}</strong> -
                                 ${record.formattedTime} -
                                 ${record.carModel} -
-                                <em style="color: var(--theme-secondary, #cc0000);">${record.trackName}</em>
+                                <em style="color: var(--theme-secondary, #cc0000);">${record.trackName}</em> -
+                                ${formatDate(record.date)}
                             </span>
                             <div class="car-actions">
                                 <button class="btn-edit btn-small" onclick="editRecordByTrack('${record.trackId}', ${recordIndex})">编辑</button>
-                                <button class="btn-delete btn-small" onclick="deleteRecordByTrack('${record.trackId}', '${record.driverName}', '${record.formattedTime}', '${record.carModel}')">删除</button>
+                                <button class="btn-delete btn-small" onclick="deleteRecordByTrack('${escapeAttr(record.trackId)}', '${escapeAttr(record.driverName)}', '${escapeAttr(record.formattedTime)}', '${escapeAttr(record.carModel)}')">删除</button>
                             </div>
                         </div>
                     `;
@@ -2028,10 +2208,7 @@
                 ).join('');
         }
 
-        // 使函数在全局作用域可用
-        window.editRecord = editRecord;
-        window.deleteRecord = deleteRecord;
-        window.updateRecord = updateRecord;
+        // 将 onclick 使用的函数暴露到全局作用域
         window.deleteTrack = deleteTrack;
         window.deleteCarModel = deleteCarModel;
         window.editRecordByTrack = editRecordByTrack;
