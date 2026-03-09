@@ -801,6 +801,10 @@
                         </div>
                         <button class="btn-reset" id="clearFilters" style="height: 40px;">清除筛选</button>
                     </div>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="btn-edit" id="exportCurrentTrack" style="padding: 8px 16px; font-size: 0.85rem;">导出当前赛道 Excel</button>
+                        <button class="btn-edit" id="exportAllTracks" style="padding: 8px 16px; font-size: 0.85rem;">导出全部赛道 Excel</button>
+                    </div>
                 </div>
 
                 <div class="edit-list" id="editList">
@@ -1398,6 +1402,24 @@
                 });
             }
 
+            const exportCurrentBtn = document.getElementById('exportCurrentTrack');
+            if (exportCurrentBtn) {
+                exportCurrentBtn.addEventListener('click', function() {
+                    const trackName = tracks.find(t => t.id === currentTrackId)?.name || '当前赛道';
+                    const sorted = [...records].sort((a, b) => a.totalMilliseconds - b.totalMilliseconds);
+                    exportToCSV(sorted.map(r => ({ ...r, trackName })), `${trackName}_圈速排行榜`);
+                });
+            }
+
+            const exportAllBtn = document.getElementById('exportAllTracks');
+            if (exportAllBtn) {
+                exportAllBtn.addEventListener('click', function() {
+                    const allRecords = loadAllTrackRecords();
+                    allRecords.sort((a, b) => a.totalMilliseconds - b.totalMilliseconds);
+                    exportToCSV(allRecords, '全部赛道_圈速排行榜');
+                });
+            }
+
             // 时间筛选标签
             const leaderboardTabs = document.querySelectorAll('.leaderboard-tab');
             leaderboardTabs.forEach(tab => {
@@ -1966,6 +1988,37 @@
             carModelSelect.selectedIndex = 0;
             const recordDateInput = document.getElementById('recordDate');
             if (recordDateInput) recordDateInput.value = getTodayStr();
+        }
+
+        /* ========== 导出功能 ========== */
+
+        function exportToCSV(data, filename) {
+            if (!data || data.length === 0) {
+                alert('没有可导出的数据');
+                return;
+            }
+            const headers = ['排名', '车手姓名', '圈速', '总毫秒数', '赛道', '车型', '日期'];
+            const rows = data.map((r, i) => [
+                i + 1,
+                r.driverName,
+                r.formattedTime,
+                r.totalMilliseconds,
+                r.trackName || '',
+                r.carModel || '',
+                r.date ? new Date(r.date).toLocaleDateString('zh-CN') : ''
+            ]);
+            const csvContent = [headers, ...rows]
+                .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+                .join('\r\n');
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         /* ========== 工具函数 ========== */
