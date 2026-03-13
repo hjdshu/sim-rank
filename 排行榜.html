@@ -686,6 +686,30 @@
         }
 
 
+        .date-range-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: var(--theme-hover-bg, rgba(0, 0, 0, 0.3));
+            border-radius: 8px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .date-range-picker label {
+            color: #999;
+            font-size: 0.85rem;
+            margin-bottom: 0;
+        }
+
+        .date-range-picker input[type="date"] {
+            width: auto;
+            padding: 6px 10px;
+            font-size: 0.85rem;
+            color-scheme: dark;
+        }
+
         /* 动态主题变量 */
         :root {
             --theme-primary: #ff0000;
@@ -726,6 +750,15 @@
             </div>
         </header>
         
+        <!-- 日期范围选择器（放在 leaderboard 外部，避免 overflow:hidden 裁剪日历弹窗） -->
+        <div class="date-range-picker" id="dateRangePicker" style="display: none;">
+            <label>从</label>
+            <input type="date" id="filterDateStart">
+            <label>到</label>
+            <input type="date" id="filterDateEnd">
+            <button class="btn-add" id="applyDateRange" style="padding: 6px 14px; font-size: 0.85rem;">筛选</button>
+        </div>
+
         <!-- 主排行榜 -->
         <div class="leaderboard">
             <div class="leaderboard-title-bar">
@@ -736,6 +769,7 @@
                     <button class="leaderboard-tab" data-filter="week">周榜</button>
                     <button class="leaderboard-tab" data-filter="month">月榜</button>
                     <button class="leaderboard-tab" data-filter="year">年榜</button>
+                    <button class="leaderboard-tab" data-filter="custom">自选日期</button>
                 </div>
             </div>
             <div class="leaderboard-header">
@@ -1045,6 +1079,8 @@
 
         let records = [];
         let currentTimeFilter = 'all';
+        let customDateStart = null;
+        let customDateEnd = null;
         let carModels = JSON.parse(sGet('carModels')) || [
             "法拉利 SF90", "梅赛德斯 W12", "红牛 RB16B",
             "迈凯伦 MCL35M", "阿尔派 A521", "阿斯顿马丁 AMR21"
@@ -1422,14 +1458,37 @@
 
             // 时间筛选标签
             const leaderboardTabs = document.querySelectorAll('.leaderboard-tab');
+            const dateRangePicker = document.getElementById('dateRangePicker');
             leaderboardTabs.forEach(tab => {
                 tab.addEventListener('click', function() {
                     currentTimeFilter = this.getAttribute('data-filter');
                     leaderboardTabs.forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
-                    updateLeaderboardTitle();
-                    renderLeaderboard();
+                    // 显示/隐藏日期选择器
+                    dateRangePicker.style.display = currentTimeFilter === 'custom' ? 'flex' : 'none';
+                    if (currentTimeFilter !== 'custom') {
+                        updateLeaderboardTitle();
+                        renderLeaderboard();
+                    }
                 });
+            });
+
+            // 自选日期筛选
+            document.getElementById('applyDateRange').addEventListener('click', function() {
+                const startVal = document.getElementById('filterDateStart').value;
+                const endVal = document.getElementById('filterDateEnd').value;
+                if (!startVal || !endVal) {
+                    alert('请选择起止日期');
+                    return;
+                }
+                if (startVal > endVal) {
+                    alert('开始日期不能晚于结束日期');
+                    return;
+                }
+                customDateStart = startVal;
+                customDateEnd = endVal;
+                updateLeaderboardTitle();
+                renderLeaderboard();
             });
 
             // 排行榜标题设置
@@ -2084,6 +2143,18 @@
         // 根据时间筛选过滤记录
         function filterRecordsByTime(recordsList) {
             if (currentTimeFilter === 'all') return recordsList;
+            if (currentTimeFilter === 'custom') {
+                if (!customDateStart || !customDateEnd) return recordsList;
+                const start = new Date(customDateStart);
+                start.setHours(0, 0, 0, 0);
+                const end = new Date(customDateEnd);
+                end.setHours(23, 59, 59, 999);
+                return recordsList.filter(record => {
+                    if (!record.date) return false;
+                    const d = new Date(record.date);
+                    return d >= start && d <= end;
+                });
+            }
             const startDate = getFilterStartDate(currentTimeFilter);
             if (!startDate) return recordsList;
             return recordsList.filter(record => {
@@ -2105,8 +2176,11 @@
             // 默认标题：赛道名 + 筛选维度
             const currentTrack = tracks.find(t => t.id === currentTrackId);
             const trackName = currentTrack ? currentTrack.name : '排行榜';
-            const filterNames = { all: '总榜', day: '日榜', week: '周榜', month: '月榜', year: '年榜' };
-            const filterName = filterNames[currentTimeFilter] || '总榜';
+            const filterNames = { all: '总榜', day: '日榜', week: '周榜', month: '月榜', year: '年榜', custom: '自选日期' };
+            let filterName = filterNames[currentTimeFilter] || '总榜';
+            if (currentTimeFilter === 'custom' && customDateStart && customDateEnd) {
+                filterName = `${customDateStart} ~ ${customDateEnd}`;
+            }
             titleEl.textContent = `${trackName} · ${filterName}`;
         }
 
@@ -2133,7 +2207,7 @@
             updateLeaderboardTitle();
 
             if (filtered.length === 0) {
-                const filterNames = { all: '', day: '今日', week: '本周', month: '本月', year: '今年' };
+                const filterNames = { all: '', day: '今日', week: '本周', month: '本月', year: '今年', custom: '所选日期范围内' };
                 const hint = filterNames[currentTimeFilter];
                 leaderboardList.innerHTML = `
                     <div class="empty-state">
