@@ -1,0 +1,455 @@
+
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.wrap { font-family: var(--font-sans); display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; gap: 1.5rem; }
+.shop-name { font-size: 14px; color: #999; letter-spacing: 2px; margin-bottom: 4px; }
+.title { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.sub { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; text-align: center; }
+.name-input-wrap { width: 100%; max-width: 280px; }
+.name-input { width: 100%; padding: 10px 16px; font-size: 15px; border: 1.5px solid #ddd; border-radius: 10px; text-align: center; outline: none; transition: border-color 0.2s; }
+.name-input:focus { border-color: #D85A30; }
+.wheel-wrap { position: relative; width: min(90vw, 500px); height: min(90vw, 500px); }
+#wc { display: block; border-radius: 50%; }
+.pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 13px solid transparent; border-right: 13px solid transparent; border-top: 30px solid #D85A30; z-index: 10; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25)); }
+.spin-btn { margin-top: 8px; padding: 14px 56px; font-size: 18px; font-weight: 600; color: #fff; background: linear-gradient(135deg, #F0997B, #D85A30); border: none; border-radius: 50px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 4px 16px rgba(216,90,48,0.35); letter-spacing: 2px; }
+.spin-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(216,90,48,0.45); }
+.spin-btn:active { transform: translateY(0) scale(0.97); box-shadow: 0 2px 8px rgba(216,90,48,0.3); }
+.spin-btn:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
+.result-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.45); z-index: 200; align-items: center; justify-content: center; }
+.result-overlay.show { display: flex; }
+.result { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 4rem 5rem; background: #fff; border-radius: 24px; text-align: center; box-shadow: 0 12px 60px rgba(0,0,0,0.25); min-width: 420px; }
+.result-shop { font-size: 20px; color: #bbb; font-weight: 400; letter-spacing: 2px; }
+.result-label { font-size: 28px; color: #888; }
+.result-name { font-size: 42px; font-weight: 700; color: #D85A30; }
+.result-prize { font-size: 56px; font-weight: 700; color: #333; }
+.result-date { font-size: 18px; color: #aaa; margin-top: 4px; }
+.legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; max-width: 380px; }
+.leg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); }
+.leg-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+.fullscreen-btn { position: fixed; bottom: 12px; left: 12px; padding: 4px 10px; font-size: 12px; color: rgba(0,0,0,0.3); background: rgba(0,0,0,0.06); border: none; border-radius: 4px; cursor: pointer; z-index: 100; }
+.fullscreen-btn:hover { background: rgba(0,0,0,0.12); color: rgba(0,0,0,0.5); }
+
+/* 后台面板 */
+.admin-trigger { position: fixed; bottom: 12px; right: 12px; width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(0,0,0,0.08); color: rgba(0,0,0,0.3); font-size: 14px; cursor: pointer; z-index: 100; display: flex; align-items: center; justify-content: center; }
+.admin-trigger:hover { background: rgba(0,0,0,0.15); }
+.admin-panel { position: fixed; bottom: 50px; right: 12px; width: 300px; max-height: 80vh; overflow-y: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 16px; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.12); display: none; font-family: system-ui, sans-serif; }
+.admin-panel.open { display: block; }
+.admin-panel h4 { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 12px; }
+.admin-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.admin-row input[type="color"] { width: 24px; height: 24px; border: 1px solid #ddd; border-radius: 4px; padding: 1px; cursor: pointer; flex-shrink: 0; }
+.admin-row .admin-name { width: 80px; padding: 3px 6px; font-size: 12px; border: 1px solid #ddd; border-radius: 4px; }
+.admin-row .admin-pct { font-size: 11px; color: #999; width: 32px; text-align: right; flex-shrink: 0; }
+.admin-row .admin-count { width: 44px; padding: 3px 6px; font-size: 12px; border: 1px solid #ddd; border-radius: 4px; text-align: center; }
+.admin-row .admin-del { width: 22px; height: 22px; border: none; background: none; color: #ccc; font-size: 14px; cursor: pointer; flex-shrink: 0; padding: 0; line-height: 22px; }
+.admin-row .admin-del:hover { color: #e55; }
+.admin-add { margin-top: 4px; margin-bottom: 8px; width: 100%; padding: 5px; font-size: 12px; color: #888; background: none; border: 1px dashed #ddd; border-radius: 6px; cursor: pointer; }
+.admin-add:hover { border-color: #aaa; color: #555; }
+.admin-save { margin-top: 8px; width: 100%; padding: 6px; font-size: 12px; font-weight: 500; color: #fff; background: #D85A30; border: none; border-radius: 6px; cursor: pointer; }
+.admin-save:hover { background: #c04e28; }
+.admin-total { font-size: 11px; color: #999; margin-top: 8px; text-align: center; }
+.records-panel { width: 340px; max-width: 90vw; background: #fff; border-radius: 14px; padding: 20px; box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+.record-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+.record-item:last-child { border-bottom: none; }
+.record-name { font-weight: 500; color: #333; }
+.record-prize { color: #D85A30; font-weight: 500; }
+.record-date { color: #aaa; font-size: 11px; }
+</style>
+
+<div class="wrap">
+  <div style="text-align:center">
+    <div class="shop-name" id="shop-name"></div>
+    <div class="title">幸运大转盘</div>
+    <div class="sub">离店专属福利</div>
+  </div>
+
+  <div class="name-input-wrap">
+    <input class="name-input" id="customer-name" type="text" placeholder="请输入您的姓名" maxlength="20">
+  </div>
+
+  <div class="wheel-wrap">
+    <div class="pointer"></div>
+    <canvas id="wc" width="500" height="500" style="width:100%;height:100%"></canvas>
+  </div>
+
+  <button class="spin-btn" id="btn" onclick="spin()">开始转动</button>
+
+  <div class="result-overlay" id="result">
+    <div class="result">
+      <div class="result-shop" id="result-shop"></div>
+      <div class="result-label">🎉 恭喜</div>
+      <div class="result-name" id="result-name"></div>
+      <div style="font-size:24px;color:#999;">获得</div>
+      <div class="result-prize" id="prize-text"></div>
+      <div class="result-date" id="result-date"></div>
+      <div style="font-size:16px;color:#bbb;margin-top:6px;">截图保存 · 下次到店出示即可</div>
+      <button style="margin-top:12px; font-size:18px; color:#666; background:none; border:1.5px solid #ddd; border-radius:10px; padding:10px 36px; cursor:pointer;" onclick="document.getElementById('result').classList.remove('show')">知道了</button>
+    </div>
+  </div>
+
+  <div class="legend" id="legend"></div>
+</div>
+
+<button class="fullscreen-btn" onclick="toggleFullscreen()">全屏</button>
+<button class="admin-trigger" id="admin-trigger" onclick="toggleAdmin()">⚙</button>
+<div class="admin-panel" id="admin-panel">
+  <h4>店铺设置</h4>
+  <div style="margin-bottom:12px;">
+    <input id="admin-shop-name" type="text" placeholder="输入店铺名称" style="width:100%;padding:5px 8px;font-size:12px;border:1px solid #ddd;border-radius:4px;">
+  </div>
+  <h4>奖项配置</h4>
+  <div id="admin-rows"></div>
+  <button class="admin-add" onclick="addPrizeRow()">+ 添加奖项</button>
+  <div class="admin-total" id="admin-total"></div>
+  <button class="admin-save" onclick="applyAdmin()">保存并刷新转盘</button>
+  <button class="admin-save" style="margin-top:6px;background:#555;" onclick="showRecords()">查看中奖记录</button>
+</div>
+
+<div class="result-overlay" id="records-overlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="records-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h4 style="font-size:15px;font-weight:600;color:#333;margin:0;">中奖记录</h4>
+      <button style="background:none;border:none;font-size:18px;color:#999;cursor:pointer;" onclick="document.getElementById('records-overlay').classList.remove('show')">&times;</button>
+    </div>
+    <div id="records-list" style="max-height:60vh;overflow-y:auto;"></div>
+    <button class="admin-save" style="margin-top:12px;background:#e55;" onclick="if(confirm('确定清空所有记录？')){localStorage.removeItem('wheel_records');showRecords();}">清空记录</button>
+  </div>
+</div>
+
+<script>
+// 默认奖项配置
+const defaultPrizes = [
+  { label: "买一送一",    color: "#F0997B", textColor: "#4A1B0C", count: 7 },
+  { label: "下次8折",     color: "#85B7EB", textColor: "#042C53", count: 6 },
+  { label: "30分钟体验卡", color: "#5DCAA5", textColor: "#04342C", count: 5 },
+  { label: "本单9折",     color: "#B4B2A9", textColor: "#2C2C2A", count: 2 },
+];
+
+// 预设颜色池，新增奖项时循环使用
+const colorPool = [
+  { color: "#E8A87C", textColor: "#4A2B0C" },
+  { color: "#95DAC1", textColor: "#0A3A2C" },
+  { color: "#A8D8EA", textColor: "#0A3453" },
+  { color: "#D4A5E5", textColor: "#3A1050" },
+  { color: "#F6D186", textColor: "#4A3A0C" },
+  { color: "#E57F84", textColor: "#4A0C10" },
+];
+
+// 从 localStorage 读取完整配置，没有则用默认
+function loadPrizes() {
+  const saved = localStorage.getItem('wheel_config');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    if (Array.isArray(parsed)) return parsed;
+    // 兼容旧格式 {label: count}，清除后用默认
+    localStorage.removeItem('wheel_config');
+  }
+  return defaultPrizes.map(p => ({ ...p }));
+}
+
+let prizes = loadPrizes();
+
+// 生成转盘格子，均匀交叉排列
+function generateSlots(config) {
+  const result = [];
+  const total = config.reduce((s, p) => s + p.count, 0);
+  const remaining = config.map(p => ({ ...p, left: p.count }));
+  for (let i = 0; i < total; i++) {
+    remaining.sort((a, b) => (b.left / b.count) - (a.left / a.count) || b.left - a.left);
+    const pick = remaining.find(r => r.left > 0);
+    result.push({ label: pick.label, color: pick.color, textColor: pick.textColor });
+    pick.left--;
+  }
+  return result;
+}
+
+// 缓存 slots
+function loadSlots() {
+  const configKey = prizes.map(p => `${p.label}:${p.count}`).join(',');
+  const cached = localStorage.getItem('wheel_slots');
+  if (cached) {
+    const parsed = JSON.parse(cached);
+    if (parsed.config === configKey) return parsed.slots;
+  }
+  const s = generateSlots(prizes);
+  localStorage.setItem('wheel_slots', JSON.stringify({ config: configKey, slots: s }));
+  return s;
+}
+
+let slots = loadSlots();
+
+const canvas = document.getElementById('wc');
+const ctx = canvas.getContext('2d');
+const W = 500, cx = W/2, cy = W/2, R = 230, innerR = 50;
+let currentAngle = 0;
+let spinning = false;
+
+function getArc() { return (2 * Math.PI) / slots.length; }
+
+// 图例
+function renderLegend() {
+  const el = document.getElementById('legend');
+  const total = prizes.reduce((s, p) => s + p.count, 0);
+  el.innerHTML = prizes.map(p =>
+    `<div class="leg"><div class="leg-dot" style="background:${p.color}"></div>${p.label}</div>`
+  ).join('');
+}
+
+function drawWheel(angle) {
+  const arc = getArc();
+  ctx.clearRect(0, 0, W, W);
+  slots.forEach((s, i) => {
+    const start = angle + i * arc - Math.PI/2;
+    const end = start + arc;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, start, end);
+    ctx.closePath();
+    ctx.fillStyle = s.color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + arc / 2);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = s.textColor;
+
+    const textR = s.label.length > 4 ? R * 0.63 : R * 0.65;
+    if (s.label.length > 4) {
+      ctx.font = '500 10px system-ui, sans-serif';
+      const mid = Math.ceil(s.label.length / 2);
+      ctx.fillText(s.label.slice(0, mid), textR, -6);
+      ctx.fillText(s.label.slice(mid), textR, 6);
+    } else {
+      ctx.font = '500 12px system-ui, sans-serif';
+      ctx.fillText(s.label, textR, 0);
+    }
+    ctx.restore();
+  });
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, 2*Math.PI);
+  ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, 2*Math.PI);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.font = '500 12px system-ui, sans-serif';
+  ctx.fillStyle = '#555';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('GO', cx, cy);
+}
+
+// 店铺名称
+function loadShopName() { return localStorage.getItem('wheel_shop_name') || ''; }
+function renderShopName() {
+  const name = loadShopName();
+  document.getElementById('shop-name').textContent = name;
+}
+renderShopName();
+renderLegend();
+drawWheel(0);
+
+function pickWinner() {
+  const total = prizes.reduce((s, p) => s + p.count, 0);
+  const r = Math.random() * total;
+  let acc = 0;
+  for (const p of prizes) {
+    acc += p.count;
+    if (r < acc) return slots.findIndex(s => s.label === p.label);
+  }
+  return 0;
+}
+
+function spin() {
+  if (spinning) return;
+  const nameInput = document.getElementById('customer-name');
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.focus(); nameInput.style.borderColor = '#e55'; return; }
+  nameInput.style.borderColor = '';
+
+  spinning = true;
+  document.getElementById('result').classList.remove('show');
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  btn.textContent = '转动中...';
+
+  const arc = getArc();
+  const winnerIndex = pickWinner();
+  const winnerMidAngle = winnerIndex * arc + arc / 2;
+  const normalizedCurrent = ((currentAngle % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+  const extraSpins = 2 * Math.PI * (6 + Math.floor(Math.random() * 3));
+  const targetAngle = currentAngle + extraSpins + (2*Math.PI - normalizedCurrent - winnerMidAngle + (2*Math.PI)) % (2*Math.PI);
+
+  const duration = 4500;
+  const startTime = performance.now();
+  const startAngle = currentAngle;
+
+  function animate(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 4);
+    currentAngle = startAngle + (targetAngle - startAngle) * ease;
+    drawWheel(currentAngle);
+    if (t < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+      btn.disabled = false;
+      btn.textContent = '再转一次';
+      const prizeName = slots[winnerIndex].label;
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      document.getElementById('result-shop').textContent = loadShopName();
+      document.getElementById('result-name').textContent = name;
+      document.getElementById('prize-text').textContent = prizeName;
+      document.getElementById('result-date').textContent = dateStr;
+      document.getElementById('result').classList.add('show');
+      saveRecord(name, prizeName, dateStr);
+      nameInput.value = '';
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+// 保存中奖记录
+function saveRecord(name, prize, date) {
+  const records = JSON.parse(localStorage.getItem('wheel_records') || '[]');
+  records.unshift({ name, prize, date });
+  localStorage.setItem('wheel_records', JSON.stringify(records));
+}
+
+// ===== 后台面板 =====
+let adminPrizes = []; // 面板中的临时编辑数据
+
+function toggleAdmin() {
+  document.getElementById('admin-panel').classList.toggle('open');
+  document.getElementById('admin-shop-name').value = loadShopName();
+  adminPrizes = prizes.map(p => ({ ...p }));
+  renderAdminRows();
+}
+
+function renderAdminRows() {
+  const container = document.getElementById('admin-rows');
+  const total = adminPrizes.reduce((s, p) => s + p.count, 0);
+  container.innerHTML = adminPrizes.map((p, i) => `
+    <div class="admin-row">
+      <input type="color" value="${p.color}" id="admin-color-${i}" onchange="adminPrizes[${i}].color=this.value;updateAdminTotal()">
+      <input class="admin-name" value="${p.label}" id="admin-name-${i}">
+      <span class="admin-pct" id="admin-pct-${i}">${total ? Math.round(p.count / total * 100) : 0}%</span>
+      <input class="admin-count" type="number" min="1" max="50" value="${p.count}" id="admin-count-${i}" oninput="updateAdminTotal()">
+      <button class="admin-del" onclick="delPrizeRow(${i})" title="删除">&times;</button>
+    </div>
+  `).join('');
+  updateAdminTotal();
+}
+
+function addPrizeRow() {
+  const ci = adminPrizes.length % colorPool.length;
+  adminPrizes.push({ label: "新奖项", color: colorPool[ci].color, textColor: colorPool[ci].textColor, count: 1 });
+  renderAdminRows();
+}
+
+function delPrizeRow(i) {
+  if (adminPrizes.length <= 2) { alert('至少保留2个奖项'); return; }
+  adminPrizes.splice(i, 1);
+  renderAdminRows();
+}
+
+function updateAdminTotal() {
+  let sum = 0;
+  const counts = [];
+  adminPrizes.forEach((_, i) => {
+    const v = parseInt(document.getElementById(`admin-count-${i}`).value) || 0;
+    counts.push(v);
+    sum += v;
+  });
+  adminPrizes.forEach((_, i) => {
+    document.getElementById(`admin-pct-${i}`).textContent = sum ? Math.round(counts[i] / sum * 100) + '%' : '0%';
+  });
+  document.getElementById('admin-total').textContent = `共 ${sum} 格`;
+}
+
+// 根据背景色自动算文字色（深/浅）
+function autoTextColor(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return (r*0.299 + g*0.587 + b*0.114) > 160 ? '#222' : '#fff';
+}
+
+function applyAdmin() {
+  const newPrizes = [];
+  for (let i = 0; i < adminPrizes.length; i++) {
+    const label = document.getElementById(`admin-name-${i}`).value.trim();
+    const count = parseInt(document.getElementById(`admin-count-${i}`).value);
+    const color = document.getElementById(`admin-color-${i}`).value;
+    if (!label) { alert('奖项名称不能为空'); return; }
+    if (!count || count < 1) { alert('数量至少为1'); return; }
+    newPrizes.push({ label, color, textColor: autoTextColor(color), count });
+  }
+
+  // 保存店铺名称
+  const shopName = document.getElementById('admin-shop-name').value.trim();
+  localStorage.setItem('wheel_shop_name', shopName);
+
+  // 保存完整配置到 localStorage
+  prizes = newPrizes;
+  localStorage.setItem('wheel_config', JSON.stringify(prizes));
+
+  // 重新生成转盘
+  slots = generateSlots(prizes);
+  const configKey = prizes.map(p => `${p.label}:${p.count}`).join(',');
+  localStorage.setItem('wheel_slots', JSON.stringify({ config: configKey, slots }));
+
+  currentAngle = 0;
+  renderShopName();
+  renderLegend();
+  drawWheel(0);
+  document.getElementById('admin-panel').classList.remove('open');
+  document.getElementById('btn').textContent = '开始转动';
+  document.getElementById('result').classList.remove('show');
+}
+
+function showRecords() {
+  const records = JSON.parse(localStorage.getItem('wheel_records') || '[]');
+  const list = document.getElementById('records-list');
+  if (!records.length) {
+    list.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px 0;font-size:13px;">暂无记录</div>';
+  } else {
+    list.innerHTML = records.map(r => `
+      <div class="record-item">
+        <div>
+          <span class="record-name">${r.name}</span>
+          <span class="record-prize">${r.prize}</span>
+        </div>
+        <span class="record-date">${r.date}</span>
+      </div>
+    `).join('');
+  }
+  document.getElementById('records-overlay').classList.add('show');
+}
+
+function toggleFullscreen() {
+  const btn = document.querySelector('.fullscreen-btn');
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+    btn.textContent = '退出全屏';
+  } else {
+    document.exitFullscreen();
+    btn.textContent = '全屏';
+  }
+}
+document.addEventListener('fullscreenchange', () => {
+  document.querySelector('.fullscreen-btn').textContent = document.fullscreenElement ? '退出全屏' : '全屏';
+});
+</script>
